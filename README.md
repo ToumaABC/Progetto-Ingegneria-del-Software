@@ -1,10 +1,10 @@
-# Sistema per la Gestione e Ricerca di alloggi universitari 
+# Sistema per la Gestione e Ricerca di alloggi universitari 🏠🎓
 
 **Piattaforma software per semplificare e rendere più sicuro il mercato degli affitti accademici.**
 
 Questo sistema è una piattaforma software sviluppata in Python dedicata esclusivamente alla gestione e alla ricerca di alloggi per studenti universitari. L'obiettivo principale è offrire strumenti completi e dedicati sia per i locatori che per gli studenti.
 
-## Funzionalità Principali
+## 🚀 Funzionalità Principali
 
 * **Gestione Utenti:** Registrazione, login e profilazione distinta tra Studenti e Locatori.
 * **Gestione Annunci:** I locatori possono creare, modificare, nascondere o eliminare annunci completi di foto e dettagli sui servizi.
@@ -13,14 +13,14 @@ Questo sistema è una piattaforma software sviluppata in Python dedicata esclusi
 * **Ticketing:** Sistema di segnalazione guasti integrato per comunicazioni dirette tra inquilini e locatori.
 * **Recensioni Verificate:** Sistema di feedback accessibile solo agli studenti associati a un alloggio, per garantire recensioni reali al 100%.
 
-## Architettura e Tecnologie (Stack)
+## 🛠️ Architettura e Tecnologie (Stack)
 
 * **Linguaggio:** Python 3.x
 * **Framework Web:** Flask (Backend/API)
 * **Database:** SQLite (Relazionale)
 * **Architettura:** Model-View-Controller (MVC) tramite classi `Gestore` (Manager pattern).
 
-## Come avviare il progetto (Setup Locale)
+## ⚙️ Come avviare il progetto (Setup Locale)
 
 Segui questi passaggi per scaricare ed eseguire il sistema sul tuo computer.
 
@@ -38,12 +38,12 @@ cd Progetto-Ingegneria-del-Software
 
 ### 2. Crea un ambiente virtuale (Consigliato)
 È buona norma utilizzare un ambiente virtuale per isolare le dipendenze del progetto:
-- **Su Windows:**
+* **Su Windows:**
   ` ` `bash
   python -m venv venv
   venv\Scripts\activate
   ` ` `
-- **Su macOS/Linux:**
+* **Su macOS/Linux:**
   ` ` `bash
   python3 -m venv venv
   source venv/bin/activate
@@ -63,13 +63,13 @@ python app.py
 
 ### 5. Apri l'applicazione
 Una volta avviato il server, apri il tuo browser web e vai al seguente indirizzo per visualizzare la Home Page:
-- **http://127.0.0.1:5000/**
+👉 **http://127.0.0.1:5000/**
 
 ---
 
 ## 👥 Autori
-- Tommaso Britto
-- Yi Qiao Hu
-- Alex Eliaruny
+* Tommaso Britto
+* Yi Qiao Hu
+* Alex Eliaruny
 
 *Progetto realizzato per il corso di Ingegneria del Software - Università Politecnica delle Marche
