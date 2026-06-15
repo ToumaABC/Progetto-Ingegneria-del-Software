@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center bg-dark text-white rounded-top p-4">
+                <h4 class="mb-1">{{ utente.nome }} {{ utente.cognome }}</h4>
+                <p class="badge bg-light text-dark text-capitalize mb-0">{{ utente.ruolo }}</p>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('gestione_utente.profilo') }}" class="list-group-item list-group-item-action text-secondary">Visualizza profilo</a>
+                <a href="#" class="list-group-item list-group-item-action text-dark fw-semibold bg-light">Modifica il profilo</a>
+                <a href="{{ url_for('gestione_utente.logout') }}" class="list-group-item list-group-item-action list-group-item-danger text-center fw-bold">Log Out</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm p-4 bg-white mb-4">
+            <h3 class="border-bottom pb-3 mb-4 text-dark">Modifica Informazioni profilo</h3>
+            
+            <form method="POST" action="{{ url_for('gestione_utente.modifica_profilo') }}">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">NOME</label>
+                        <input type="text" name="nome" class="form-control" value="{{ utente.nome }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">COGNOME</label>
+                        <input type="text" name="cognome" class="form-control" value="{{ utente.cognome }}" required>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label text-muted small fw-bold">EMAIL (NON MODIFICABILE)</label>
+                        <input type="email" class="form-control bg-light" value="{{ utente.email }}" readonly>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label text-muted small fw-bold">NUMERO DI TELEFONO</label>
+                        <input type="text" name="numTelefono" class="form-control" value="{{ utente.numTelefono or '' }}">
+                    </div>
+                </div>
+
+                {% if utente.ruolo == 'studente' %}
+                <h3 class="border-bottom pb-3 mb-3 text-primary">Dati Universitari</h3>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-12">
+                        <label class="form-label text-muted small fw-bold">UNIVERSITÀ</label>
+                        <input type="text" name="universita" class="form-control" value="{{ utente.universita or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">FACOLTÀ</label>
+                        <input type="text" name="facolta" class="form-control" value="{{ utente.facolta or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">CORSO DI LAUREA</label>
+                        <input type="text" name="corso" class="form-control" value="{{ utente.corso or '' }}">
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-dark px-4">Salva Modifiche</button>
+                    <a href="{{ url_for('gestione_utente.profilo') }}" class="btn btn-outline-secondary">Annulla</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

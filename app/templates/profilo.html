@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center bg-dark text-white rounded-top p-4">
+                <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="text-white h3 mb-0">U</i>
+                </div>
+                <h4 class="mb-1">{{ utente.nome }} {{ utente.cognome }}</h4>
+                <p class="badge bg-light text-dark text-capitalize mb-0">{{ utente.ruolo }}</p>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="#" class="list-group-item list-group-item-action text-secondary">Account e sicurezza</a>
+                <a href="#" class="list-group-item list-group-item-action text-secondary">Stile</a>
+                <a href="#" class="list-group-item list-group-item-action text-secondary">About us</a>
+                <a href="{{ url_for('gestione_utente.modifica_profilo') }}" class="list-group-item list-group-item-action text-secondary">Modifica il profilo</a>
+                
+                {% if utente.ruolo == 'locatore' %}
+                    <a href="#" class="list-group-item list-group-item-action text-secondary">Gestione annuncio</a>
+                {% endif %}
+                
+                <a href="#" class="list-group-item list-group-item-action text-secondary">Ticket</a>
+                <a href="#" class="list-group-item list-group-item-action text-secondary d-flex justify-content-between align-items-center">
+                    Versione <span class="text-muted small">2026.1</span>
+                </a>
+                <form action="{{ url_for('gestione_utente.elimina_account') }}" method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare definitivamente il tuo account? L\'azione è irreversibile.');" class="p-0 m-0">
+                    <button type="submit" class="list-group-item list-group-item-action text-danger fw-semibold w-100 text-start border-0 rounded-0">Elimina account</button>
+                </form>
+                <a href="{{ url_for('gestione_utente.logout') }}" class="list-group-item list-group-item-action list-group-item-danger text-center fw-bold mt-2">Log Out</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm p-4 bg-white mb-4">
+            <h3 class="border-bottom pb-3 mb-4 text-dark">Informazioni Account</h3>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Nome</label>
+                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.nome }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Cognome</label>
+                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.cognome }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Indirizzo Email</label>
+                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.email }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Numero di Telefono</label>
+                    <p class="form-control-plaintext fs-5 border-bottom pb-1">
+                        {% if utente.numTelefono %}{{ utente.numTelefono }}{% else %}<span class="text-muted italic small">Non inserito</span>{% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Stato Verifica</label>
+                    <p class="form-control-plaintext border-bottom pb-1">
+                        {% if utente.verificato %}
+                            <span class="badge bg-success">Verificato ed Attivo</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">In attesa di verifica</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if utente.ruolo == 'studente' %}
+        <div class="card shadow-sm p-4 bg-white border-start border-4 border-primary">
+            <h3 class="border-bottom pb-3 mb-4 text-primary">Dettagli Accademici</h3>
+            
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Università frequentata</label>
+                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.universita }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Facoltà</label>
+                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.facolta }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold text-uppercase">Corso di Laurea</label>
+                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.corso }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 bg-white p-5 rounded shadow">
+        <h2 class="mb-4">Register your account</h2>
+        <form method="POST" action="{{ url_for('gestione_utente.register') }}">
+            <div class="mb-3 d-flex gap-2">
+                <input type="text" name="nome" class="form-control" placeholder="Nome" required>
+                <input type="text" name="cognome" class="form-control" placeholder="Cognome" required>
+            </div>
+            <div class="mb-3">
+                <input type="email" name="email" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="mb-3">
+                <input type="text" name="numTelefono" class="form-control" placeholder="Numero di telefono">
+            </div>
+            <div class="mb-3">
+                <input type="password" name="password" class="form-control" placeholder="Password" required>
+            </div>
+            <div class="mb-3">
+                <select name="ruolo" id="ruoloSelect" class="form-select" onchange="toggleStudentFields()" required>
+                    <option value="" disabled selected>Seleziona Ruolo</option>
+                    <option value="studente">Studente</option>
+                    <option value="locatore">Locatore</option>
+                </select>
+            </div>
+            
+            <div id="studentFields" style="display: none;">
+                <div class="mb-3">
+                    <input type="text" name="universita" class="form-control" placeholder="Università">
+                </div>
+                <div class="mb-3">
+                    <input type="text" name="facolta" class="form-control" placeholder="Facoltà">
+                </div>
+                <div class="mb-3">
+                    <input type="text" name="corso" class="form-control" placeholder="Corso di studi">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100">Sign in</button>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('gestione_utente.login') }}" class="text-decoration-none">Hai già un account? Log In</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleStudentFields() {
+        const ruolo = document.getElementById('ruoloSelect').value;
+        const studentFields = document.getElementById('studentFields');
+        if (ruolo === 'studente') {
+            studentFields.style.display = 'block';
+        } else {
+            studentFields.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
