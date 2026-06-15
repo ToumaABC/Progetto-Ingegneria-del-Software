@@ -68,7 +68,7 @@ def verify_email(token):
     """Transizione di stato del diagramma AccountUtente da 'In attesa di verifica' a 'Verificato'"""
     email = GestoreUtente.confermaTokenVerifica(token)
     if email:
-        utente = GestoreUtente.cercaUtentePerEmail(email)
+        utente = Utente.query.filter_by(email=email).first()
         if utente:
             if utente.verificato:
                 flash('Questo account risulta già verificato.', 'info')

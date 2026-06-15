@@ -4,16 +4,10 @@
     <div class="col-md-4 mb-4">
         <div class="card shadow-sm">
             <div class="card-body text-center bg-dark text-white rounded-top p-4">
-                <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                    <i class="text-white h3 mb-0">U</i>
-                </div>
                 <h4 class="mb-1">{{ utente.nome }} {{ utente.cognome }}</h4>
                 <p class="badge bg-light text-dark text-capitalize mb-0">{{ utente.ruolo }}</p>
             </div>
             <div class="list-group list-group-flush">
-                <a href="#" class="list-group-item list-group-item-action text-secondary">Account e sicurezza</a>
-                <a href="#" class="list-group-item list-group-item-action text-secondary">Stile</a>
-                <a href="#" class="list-group-item list-group-item-action text-secondary">About us</a>
                 <a href="{{ url_for('gestione_utente.modifica_profilo') }}" class="list-group-item list-group-item-action text-secondary">Modifica il profilo</a>
                 
                 {% if utente.ruolo == 'locatore' %}

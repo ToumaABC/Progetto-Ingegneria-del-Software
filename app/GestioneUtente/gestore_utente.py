@@ -11,25 +11,28 @@ import re
 class GestoreUtente:
     
     @staticmethod
-    def cercaUtentePerEmail(email):
+    def cercaStudentePerEmail(email):
         """Cerca un utente tramite email."""
-        return Utente.query.filter_by(email=email).first()
+        utente = Utente.query.filter_by(email=email).first()
+        if utente and utente.ruolo == 'studente':
+            return utente
+        return None
 
     @staticmethod
     def validaPassword(password):
         if len(password) < 8:
             return False
-        if not re.search(r"\d", password):
+        if not re.search(r"\d", password):#verifico la presenza di un carettere maiuscolo
             return False
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password): #verfico la presenza di un carattere speciale
             return False
         return True
 
     @staticmethod
     def validaCredenziali(email, password):
         """Verifica email e password per il login."""
-        utente = GestoreUtente.cercaUtentePerEmail(email)
-        # RNF-2: Check hash password
+        utente = Utente.query.filter_by(email=email).first()
+
         if utente and check_password_hash(utente.password, password):
             return utente
         return None
@@ -43,7 +46,7 @@ class GestoreUtente:
         ruolo = dati_form.get('ruolo')
 
         # Controllo unicità email
-        if GestoreUtente.cercaUtentePerEmail(email):
+        if Utente.query.filter_by(email=email).first():
             raise ValueError("L'email inserita è già in uso.")
 
         # Controllo validità password
@@ -60,7 +63,7 @@ class GestoreUtente:
                 email=email,
                 numTelefono=dati_form.get('numTelefono'),
                 password=hashed_pw,
-                verificato=False,  # In attesa di verifica (diagramma di stato)
+                verificato=False, 
                 corso=dati_form.get('corso'),
                 facolta=dati_form.get('facolta'),
                 universita=dati_form.get('universita')
@@ -120,42 +123,6 @@ class GestoreUtente:
         except (SignatureExpired, BadTimeSignature):
             return None
         
-    @staticmethod
-    def inviaEmailRecupero(email):
-        """Genera un token temporaneo per il reset della password e lo invia."""
-        utente = GestoreUtente.cercaUtentePerEmail(email)
-        if not utente:
-            raise ValueError("Nessun account associato a questo indirizzo email.")
-        
-        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
-        token = serializer.dumps(email, salt="password-reset-salt")
-        link_reset = url_for('gestione_utente.reset_password', token=token, _external=True)
-        
-        msg = Message("Recupero Password - UniAlloggi", recipients=[email])
-        msg.body = f"Hai richiesto il recupero della password per il tuo account UniAlloggi.\n\nClicca sul seguente link per impostare una nuova password:\n{link_reset}\n\nIl link scadrà tra 1 ora."
-        try:
-            mail.send(msg)
-        except Exception:
-            print(f"\n[DEBUG] Link di RESET della password simulato:\n--> {link_reset}\n")
-
-    @staticmethod
-    def resettaPassword(token, nuova_password, expiration=3600):
-        """Valida il token di reset e aggiorna la password applicando i vincoli RNF-2 e RNF-3."""
-        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
-        try:
-            email = serializer.loads(token, salt="password-reset-salt", max_age=expiration)
-        except (SignatureExpired, BadTimeSignature):
-            raise ValueError("Il link di recupero è scaduto o non è valido.")
-        
-        if not GestoreUtente.validaPassword(nuova_password):
-            raise ValueError("La nuova password deve contenere almeno 8 caratteri, un numero e un carattere speciale.")
-        
-        utente = GestoreUtente.cercaUtentePerEmail(email)
-        if not utente:
-            raise ValueError("Utente non trovato.")
-            
-        utente.password = generate_password_hash(nuova_password)
-        db.session.commit()
 
     @staticmethod
     def modificaProfilo(utente, dati_form):
@@ -206,7 +173,7 @@ class GestoreUtente:
         Caso d'Uso 6: Recupero Password.
         Verifica l'esistenza dell'email, genera una nuova password, la aggiorna e la invia.
         """
-        utente = GestoreUtente.cercaUtentePerEmail(email)
+        utente = Utente.query.filter_by(email=email).first()
         if not utente:
             raise ValueError("Nessun account associato a questo indirizzo email.")
         
