@@ -20,16 +20,6 @@ Questo sistema è una piattaforma software sviluppata in Python dedicata esclusi
 * **Database:** SQLite (Relazionale)
 * **Architettura:** Model-View-Controller (MVC) tramite classi `Gestore` (Manager pattern).
 
-## ⚙️ Come avviare il progetto (Setup Locale)
-<<<<<<< HEAD
-Certamente! Un buon file `README.md` è fondamentale per presentare il tuo progetto su GitHub e permettere ai docenti o ad altri sviluppatori di testarlo senza problemi.
-=======
->>>>>>> fadfe2d7d331e2538764ac6491c8f4ad950f3ea3
-
-Ecco un template completo e professionale per il tuo **README**, strutturato appositamente per l'architettura Flask che abbiamo costruito insieme.
-
-Puoi copiare questo testo e incollarlo direttamente in un file chiamato `README.md` nella root del tuo progetto (accanto a `run.py`).
-
 
 ## ⚙️ Configurazione e Installazione
 
@@ -50,22 +40,7 @@ Scarica il progetto da GitHub e spostati nella cartella radice:
 git clone [https://github.com/ToumaABC/Progetto-Ingegneria-del-Software.git]
 cd Progetto-Ingegneria-del-Software
 
-<<<<<<< HEAD
 ```
-=======
-### 2. Crea un ambiente virtuale (Consigliato)
-È buona norma utilizzare un ambiente virtuale per isolare le dipendenze del progetto:
-* **Su Windows:**
-  ` ` `bash
-  python -m venv venv
-  venv\Scripts\activate
-  ` ` `
-* **Su macOS/Linux:**
-  ` ` `bash
-  python3 -m venv venv
-  source venv/bin/activate
-  ` ` `
->>>>>>> fadfe2d7d331e2538764ac6491c8f4ad950f3ea3
 
 ### 3. Crea e Attiva un Ambiente Virtuale (VENV)
 
@@ -97,7 +72,6 @@ pip install -r requirements.txt
 
 ```
 
-<<<<<<< HEAD
 
 ### 5. Configura le Variabili d'Ambiente (`.env`)
 
@@ -170,17 +144,3 @@ UniAlloggi/
 Corso di Laurea in Ingegneria Informatica e dell'Automazione - Università Politecnica delle Marche.
 
 
-=======
-### 5. Apri l'applicazione
-Una volta avviato il server, apri il tuo browser web e vai al seguente indirizzo per visualizzare la Home Page:
-👉 **http://127.0.0.1:5000/**
-
----
-
-## 👥 Autori
-* Tommaso Britto
-* Yi Qiao Hu
-* Alex Eliaruny
-
-*Progetto realizzato per il corso di Ingegneria del Software - Università Politecnica delle Marche
->>>>>>> fadfe2d7d331e2538764ac6491c8f4ad950f3ea3
