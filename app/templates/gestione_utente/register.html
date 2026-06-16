@@ -4,62 +4,135 @@
 {% block navbar %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center min-vh-100 py-5">
-    <div class="col-md-6">
-        <div class="card bg-white p-5 rounded-4 shadow-sm border-0">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold">Register your account</h2>
-                <p class="text-muted">Crea il tuo profilo su UniAlloggi</p>
-            </div>
-            
-            <form method="POST" action="{{ url_for('gestione_utente.register') }}">
-                <div class="row mb-3 g-2">
-                    <div class="col">
-                        <input type="text" name="nome" class="form-control form-control-lg bg-light border-0" placeholder="Nome" required>
-                    </div>
-                    <div class="col">
-                        <input type="text" name="cognome" class="form-control form-control-lg bg-light border-0" placeholder="Cognome" required>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <input type="email" name="email" class="form-control form-control-lg bg-light border-0" placeholder="Email" required>
-                </div>
-                <div class="mb-3">
-                    <input type="text" name="numTelefono" class="form-control form-control-lg bg-light border-0" placeholder="Numero di telefono (opzionale)">
-                </div>
-                <div class="mb-3">
-                    <input type="password" name="password" class="form-control form-control-lg bg-light border-0" placeholder="Password" required>
-                </div>
-                <div class="mb-4">
-                    <select name="ruolo" id="ruoloSelect" class="form-select form-select-lg bg-light border-0 text-muted" onchange="toggleStudentFields()" required>
-                        <option value="" disabled selected>Seleziona Ruolo</option>
-                        <option value="studente">Studente</option>
-                        <option value="locatore">Locatore</option>
-                    </select>
-                </div>
-                
-                <div id="studentFields" style="display: none;" class="p-3 bg-light rounded-3 mb-4">
-                    <h6 class="text-muted mb-3">Dati Universitari</h6>
-                    <div class="mb-3">
-                        <input type="text" name="universita" class="form-control border-0" placeholder="Università">
-                    </div>
-                    <div class="mb-3">
-                        <input type="text" name="facolta" class="form-control border-0" placeholder="Facoltà">
-                    </div>
-                    <div class="mb-3">
-                        <input type="text" name="corso" class="form-control border-0" placeholder="Corso di studi">
-                    </div>
-                </div>
+<style>
+    .slide-up-fade {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: slideUpFade 0.7s ease-out forwards;
+    }
+    
+    @keyframes slideUpFade {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
-                <button type="submit" class="btn btn-dark btn-lg w-100 rounded-3 mb-3">Sign up</button>
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.6s; }
+    .delay-3 { animation-delay: 1.0s; }
+
+    /* L'immagine ora riempirà tutto il contenitore di sinistra */
+    .bg-left-panel {
+        background-image: url("{{ url_for('static', filename='registerPhoto.png') }}");
+        background-size: cover;
+        background-position: center;
+        /* Rimosso il bordo arrotondato qui, lo gestisce il contenitore padre */
+    }
+</style>
+
+<div class="container-fluid min-vh-100 d-flex flex-column justify-content-center align-items-center bg-light py-4">
+    
+    <div class="text-center mb-4">
+        <h2 class="fw-bold m-0" style="letter-spacing: -1px;">
+            <i class="bi bi-house-fill text-dark me-2"></i>UniAlloggi
+        </h2>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden w-100" style="max-width: 950px;">
+        
+        <div class="row g-0 align-items-stretch">
+            
+            <div class="col-md-5 bg-left-panel p-5 d-flex flex-column justify-content-center position-relative">
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(255, 255, 255, 0.5);"></div>
                 
-                <div class="text-center mt-3">
-                    <span class="text-muted small">Hai già un account? </span>
-                    <a href="{{ url_for('gestione_utente.login') }}" class="text-dark fw-bold text-decoration-none">Log In</a>
+                <div class="position-relative z-1">
+                    <h1 class="display-4 fw-bolder text-dark mb-2" style="letter-spacing: -2px;">
+                        <span class="d-block slide-up-fade delay-1">Register your</span>
+                        <span class="d-block slide-up-fade delay-2">account</span>
+                    </h1>
+                    <p class="fs-4 text-secondary slide-up-fade delay-3">smile for everyday</p>
                 </div>
-            </form>
+            </div>
+
+            <div class="col-md-7 p-4 p-md-5 bg-white">
+                
+                <div class="text-center mb-3">
+                    <i class="bi bi-person-circle" style="font-size: 3.5rem; color: #212529;"></i>
+                </div>
+                
+                <form method="POST" action="{{ url_for('gestione_utente.register') }}">
+                    
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-6">
+                            <label class="form-label text-muted small fw-semibold mb-1">Cognome</label>
+                            <input type="text" name="cognome" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label text-muted small fw-semibold mb-1">Nome</label>
+                            <input type="text" name="nome" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label text-muted small fw-semibold mb-1">Ruolo</label>
+                        <select name="ruolo" id="ruoloSelect" class="form-select form-select-sm" onchange="toggleStudentFields()" required>
+                            <option value="" disabled selected></option>
+                            <option value="studente">Studente</option>
+                            <option value="locatore">Locatore</option>
+                        </select>
+                    </div>
+                    
+                    <div id="studentFields" style="display: none;" class="p-2 bg-light border rounded-3 mb-2">
+                        <h6 class="text-muted mb-2 small fw-bold">Dati Universitari</h6>
+                        <div class="row g-2">
+                            <div class="col-sm-6 mb-1">
+                                <input type="text" name="universita" class="form-control form-control-sm" placeholder="Università">
+                            </div>
+                            <div class="col-sm-6 mb-1">
+                                <input type="text" name="facolta" class="form-control form-control-sm" placeholder="Facoltà">
+                            </div>
+                            <div class="col-12">
+                                <input type="text" name="corso" class="form-control form-control-sm" placeholder="Corso di studi">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label text-muted small fw-semibold mb-1">Numero di telefono</label>
+                        <input type="text" name="numTelefono" class="form-control form-control-sm">
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label text-muted small fw-semibold mb-1">Email</label>
+                        <input type="email" name="email" class="form-control form-control-sm" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-semibold mb-1">Password</label>
+                        <input type="password" name="password" class="form-control form-control-sm" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark btn-sm w-100 rounded-2 py-2 mb-3 fw-semibold" style="background-color: #2b2b2b;">Register</button>
+                    
+                    <div class="d-flex justify-content-center gap-5 pt-3 border-top position-relative">
+                        <a href="{{ url_for('gestione_utente.login') }}" class="text-secondary text-decoration-none small fw-semibold">Log in</a>
+                        <div class="text-dark small fw-bold position-relative">
+                            Register
+                            <div class="position-absolute w-100" style="height: 4px; background-color: #6b4c9a; bottom: -8px; border-radius: 2px;"></div>
+                        </div>
+                        <div class="position-absolute top-50 start-50 translate-middle" style="height: 20px; width: 2px; background-color: #6b4c9a;"></div>
+                    </div>
+
+                </form>
+            </div>
         </div>
     </div>
+
+    <div class="text-center mt-3">
+        <a href="#" class="text-secondary text-decoration-underline" style="font-size: 0.75rem;">@2026 UniAlloggi. Tutti i diritti riservati</a>
+    </div>
+
 </div>
 
 <script>
@@ -70,7 +143,6 @@
             studentFields.style.display = 'block';
         } else {
             studentFields.style.display = 'none';
-            // Opzionale: svuotare i campi se l'utente cambia idea e sceglie locatore
             document.querySelector('input[name="universita"]').value = '';
             document.querySelector('input[name="facolta"]').value = '';
             document.querySelector('input[name="corso"]').value = '';

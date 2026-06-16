@@ -4,33 +4,99 @@
 {% block navbar %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center min-vh-100">
-    <div class="col-md-5">
-        <div class="card bg-white p-5 rounded-4 shadow-sm border-0">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold">Log in your home page!</h2>
-                <p class="text-muted">Bentornato su UniAlloggi</p>
-            </div>
+<style>
+    .slide-up-fade {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: slideUpFade 0.7s ease-out forwards;
+    }
+    
+    @keyframes slideUpFade {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.6s; }
+
+    /* Usa la stessa immagine di sfondo della registrazione, oppure cambiala qui se ne hai una specifica per il login */
+    .bg-left-panel {
+        background-image: url("{{ url_for('static', filename='registerPhoto.png') }}");
+        background-size: cover;
+        background-position: center;
+    }
+</style>
+
+<div class="container-fluid min-vh-100 d-flex flex-column justify-content-center align-items-center bg-light py-4">
+    
+    <div class="text-center mb-4">
+        <h2 class="fw-bold m-0" style="letter-spacing: -1px;">
+            <i class="bi bi-house-fill text-dark me-2"></i>UniAlloggi
+        </h2>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden w-100" style="max-width: 900px;">
+        
+        <div class="row g-0 align-items-stretch">
             
-            <form method="POST" action="{{ url_for('gestione_utente.login') }}">
-                <div class="mb-3">
-                    <input type="email" name="email" class="form-control form-control-lg bg-light border-0" placeholder="Email" required>
+            <div class="col-md-5 bg-left-panel p-5 d-flex flex-column justify-content-center position-relative">
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(255, 255, 255, 0.5);"></div>
+                
+                <div class="position-relative z-1">
+                    <h1 class="display-4 fw-bolder text-dark mb-2" style="letter-spacing: -2px;">
+                        <span class="d-block slide-up-fade delay-1">Log in your home<br>page!</span>
+                    </h1>
+                    <p class="fs-4 text-secondary slide-up-fade delay-2">smile for everyday</p>
                 </div>
-                <div class="mb-3">
-                    <input type="password" name="password" class="form-control form-control-lg bg-light border-0" placeholder="Password" required>
-                </div>
-                <div class="d-flex justify-content-between mb-4 px-1">
-                    <a href="{{url_for('gestione_utente.forgot_password')}}" class="text-decoration-none text-muted small">Forgot password?</a>
+            </div>
+
+            <div class="col-md-7 p-4 p-md-5 bg-white d-flex flex-column justify-content-center">
+                
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-circle" style="font-size: 3.5rem; color: #212529;"></i>
                 </div>
                 
-                <button type="submit" class="btn btn-dark btn-lg w-100 mb-3 rounded-3">Sign in</button>
-                
-                <div class="text-center mt-3">
-                    <span class="text-muted small">Non hai un account? </span>
-                    <a href="{{ url_for('gestione_utente.register') }}" class="text-dark fw-bold text-decoration-none">Register</a>
-                </div>
-            </form>
+                <form method="POST" action="{{ url_for('gestione_utente.login') }}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-semibold mb-1">Email</label>
+                        <input type="email" name="email" class="form-control form-control-sm py-2" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-semibold mb-1">Password</label>
+                        <input type="password" name="password" class="form-control form-control-sm py-2" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark btn-sm w-100 rounded-2 py-2 mb-3 fw-semibold" style="background-color: #2b2b2b;">Sign In</button>
+                    
+                    <div class="d-flex justify-content-between align-items-center small mb-4">
+                        <a href="{{ url_for('gestione_utente.forgot_password') }}" class="text-decoration-underline text-secondary" style="font-size: 0.8rem;">Forgot password?</a>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rememberMe">
+                            <label class="form-check-label text-secondary" for="rememberMe" style="font-size: 0.8rem;">Remember me</label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-5 pt-3 border-top position-relative">
+                        <div class="text-dark small fw-bold position-relative">
+                            Log in
+                            <div class="position-absolute w-100" style="height: 4px; background-color: #6b4c9a; bottom: -8px; border-radius: 2px;"></div>
+                        </div>
+                        <a href="{{ url_for('gestione_utente.register') }}" class="text-secondary text-decoration-none small fw-semibold">Register</a>
+                        <div class="position-absolute top-50 start-50 translate-middle" style="height: 20px; width: 2px; background-color: #6b4c9a;"></div>
+                    </div>
+
+                </form>
+            </div>
         </div>
     </div>
+
+    <div class="text-center mt-3">
+        <a href="#" class="text-secondary text-decoration-underline" style="font-size: 0.75rem;">@2026 UniAlloggi. Tutti i diritti riservati</a>
+    </div>
+
 </div>
 {% endblock %}
