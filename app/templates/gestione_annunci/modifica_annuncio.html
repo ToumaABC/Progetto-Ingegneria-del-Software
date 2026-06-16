@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 800px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Modificare il tuo annuncio</h3>
+        </div>
+        <div class="card-body p-4">
+            <form action="{{ url_for('gestione_annunci.modifica_annuncio', id=annuncio.id) }}" method="POST" enctype="multipart/form-data">
+                
+                <div class="mb-3">
+                    <label for="titolo" class="form-label fw-bold">Titolo Annuncio</label>
+                    <input type="text" class="form-control" id="titolo" name="titolo" value="{{ annuncio.titolo }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="indirizzo" class="form-label fw-bold">Indirizzo</label>
+                    <input type="text" class="form-control" id="indirizzo" name="indirizzo" value="{{ annuncio.indirizzo }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descrizione" class="form-label fw-bold">Descrizione</label>
+                    <textarea class="form-control" id="descrizione" name="descrizione" rows="4" required>{{ annuncio.descrizione }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="costo" class="form-label fw-bold">Costo</label>
+                    <div class="input-group">
+                        <span class="input-group-text">&euro;</span>
+                        <input type="number" step="0.01" class="form-control" id="costo" name="costo" value="{{ annuncio.costo }}" min="0" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold d-block">Foto attuali:</label>
+                    <div class="form-text text-muted mb-2">Seleziona la spunta rossa sotto le foto che desideri eliminare.</div>
+                    
+                    {% if annuncio.foto %}
+                        <div class="row g-2 bg-light p-3 rounded border">
+                            {% for f in annuncio.foto %}
+                            <div class="col-4 col-md-3 text-center">
+                                <img src="{{ url_for('static', filename=f.percorso_file) }}" class="img-thumbnail mb-2" style="height: 100px; width: 100%; object-fit: cover;">
+                                <div class="form-check d-flex justify-content-center align-items-center">
+                                    <input class="form-check-input border-danger" type="checkbox" name="foto_da_eliminare" value="{{ f.id_foto }}" id="elimina_foto_{{ f.id_foto }}">
+                                    <label class="form-check-label text-danger ms-2" style="font-size: 0.9em;" for="elimina_foto_{{ f.id_foto }}">
+                                        Rimuovi
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-secondary text-center py-2">Nessuna foto associata a questo annuncio.</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="nuove_foto" class="form-label fw-bold">Aggiungi nuove foto</label>
+                    <input class="form-control" type="file" id="nuove_foto" name="nuove_foto" accept="image/*" multiple>
+                    <div class="form-text text-muted">Puoi aggiungere ulteriori foto. Verranno sommate a quelle già presenti.</div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end pt-3 border-top">
+                    <a href="{{ url_for('gestione_annunci.miei_annunci') }}" class="btn btn-outline-secondary">Annulla</a>
+                    <button type="submit" class="btn btn-primary px-4">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

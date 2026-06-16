@@ -3,3 +3,5 @@ venv/
 instance/
 app/__pycache__/
 app/GestioneUtente/__pycache__/
+app/GestioneAnnunci/__pycache__/
+app/static/

@@ -57,6 +57,21 @@
                 </div>
                 {% endif %}
 
+                <h3 class="border-bottom pb-3 mb-4 mt-4">Modifica Password (Opzionale)</h3>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">VECCHIA PASSWORD</label>
+                        <input type="password" name="vecchia_password" class="form-control" placeholder="Inserisci vecchia password">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">NUOVA PASSWORD</label>
+                        <input type="password" name="nuova_password" class="form-control" placeholder="Inserisci nuova password">
+                    </div>
+                    <div class="col-md-12">
+                        <p class="text-muted small"><em>* Compila questi campi solo se desideri cambiare la tua password attuale. La nuova password deve contenere almeno 8 caratteri, un numero e un carattere speciale.</em></p>
+                    </div>
+                </div>
+
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-dark px-4">Salva Modifiche</button>
                     <a href="{{ url_for('gestione_utente.profilo') }}" class="btn btn-outline-secondary">Annulla</a>

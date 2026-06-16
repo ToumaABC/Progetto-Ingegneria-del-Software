@@ -1,10 +1,12 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, Blueprint
 from flask_login import login_user, logout_user, login_required, current_user
 from app.GestioneUtente import gestione_utente_bp
 from app.GestioneUtente.gestore_utente import GestoreUtente
 from functools import wraps
 from app import db
 from app.GestioneUtente.models import Utente
+
+
 
 @gestione_utente_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -27,7 +29,7 @@ def login():
         else:
             flash('Credenziali errate. Riprova.', 'danger')
             
-    return render_template('login.html')
+    return render_template('gestione_utente/login.html')
 
 
 @gestione_utente_bp.route('/register', methods=['GET', 'POST'])
@@ -42,7 +44,7 @@ def register():
         except ValueError as e:
             flash(str(e), 'danger')
             
-    return render_template('register.html')
+    return render_template('gestione_utente/register.html')
 
 
 @gestione_utente_bp.route('/logout')
@@ -60,7 +62,7 @@ def profilo():
     Mostra i dati dell'utente corrente e adatta la vista se l'attore è uno Studente.
     """
     # Passiamo l'utente corrente (current_user) al template
-    return render_template('profilo.html', utente=current_user)
+    return render_template('gestione_utente/profilo.html', utente=current_user)
 
 
 @gestione_utente_bp.route('/verify/<token>', methods=['GET'])
@@ -87,11 +89,15 @@ def verify_email(token):
 @login_required
 def modifica_profilo():
     if request.method == 'POST':
-        GestoreUtente.modificaProfilo(current_user, request.form)
-        flash('profilo aggiornato correttamente.', 'success')
-        return redirect(url_for('gestione_utente.profilo'))
+        try:
+            GestoreUtente.modificaProfilo(current_user, request.form)
+            flash('Profilo aggiornato correttamente.', 'success')
+            return redirect(url_for('gestione_utente.profilo'))
+        except ValueError as e:
+            # Mostra l'errore (es. "La vecchia password non è corretta")
+            flash(str(e), 'danger')
         
-    return render_template('modifica_profilo.html', utente=current_user)
+    return render_template('gestione_utente/modifica_profilo.html', utente=current_user)
 
 
 @gestione_utente_bp.route('/profilo/elimina', methods=['POST'])
@@ -122,4 +128,4 @@ def forgot_password():
             # Caso in cui l'email non esiste
             flash(str(e), 'danger')
             
-    return render_template('forgot_password.html')
+    return render_template('gestione_utente/forgot_password.html')

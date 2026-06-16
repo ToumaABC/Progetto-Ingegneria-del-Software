@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 800px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h3 class="card-title mb-0">Aggiungi il tuo annuncio</h3>
+        </div>
+        <div class="card-body p-4">
+            <form action="{{ url_for('gestione_annunci.aggiungi_annuncio') }}" method="POST" enctype="multipart/form-data">
+                
+                <div class="mb-3">
+                    <label for="titolo" class="form-label fw-bold">Titolo Annuncio</label>
+                    <input type="text" class="form-control" id="titolo" name="titolo" placeholder="Es: Luminosa stanza singola vicino alla facoltà" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="indirizzo" class="form-label fw-bold">Indirizzo alloggio</label>
+                    <input type="text" class="form-control" id="indirizzo" name="indirizzo" placeholder="Es: Via Brecce Bianche 20, Ancona" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descrizione" class="form-label fw-bold">Descrizione</label>
+                    <textarea class="form-control" id="descrizione" name="descrizione" rows="4" placeholder="Inserisci i dettagli dell'alloggio, regole della casa, spese incluse/escluse..." required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="costo" class="form-label fw-bold">Costo mensile (&euro;)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">&euro;</span>
+                        <input type="number" step="0.01" class="form-control" id="costo" name="costo" placeholder="0.00" min="0" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="foto" class="form-label fw-bold">Foto dell'alloggio</label>
+                    <input class="form-control" type="file" id="foto" name="foto" accept="image/*" multiple required>
+                    <div class="form-text text-muted">Puoi selezionare più immagini tenendo premuto Ctrl o Shift durante la selezione.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label d-block fw-bold mb-2">Seleziona i servizi che offri:</label>
+                    <div class="row g-3 bg-light p-3 rounded border">
+                        {% if servizi %}
+                            {% for servizio in servizi %}
+                            <div class="col-6 col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="servizi" value="{{ servizio.id }}" id="servizio_{{ servizio.id }}">
+                                    <label class="form-check-label" for="servizio_{{ servizio.id }}">
+                                        {{ servicio.nome_servizio }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-muted text-center py-2">Nessun servizio censito nel sistema.</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end pt-3 border-top">
+                    <a href="{{ url_for('gestione_annunci.miei_annunci') }}" class="btn btn-outline-secondary">Annulla</a>
+                    <button type="submit" class="btn btn-success px-4">Conferma Annuncio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

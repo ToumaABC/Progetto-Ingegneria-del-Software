@@ -126,7 +126,25 @@ class GestoreUtente:
 
     @staticmethod
     def modificaProfilo(utente, dati_form):
-        """Aggiorna i campi anagrafici e gestisce dinamicamente i campi polimorfici dello Studente."""
+        """Aggiorna i campi anagrafici, la password e gestisce dinamicamente i campi polimorfici."""
+        
+        # Gestione Modifica Password
+        vecchia_password = dati_form.get('vecchia_password')
+        nuova_password = dati_form.get('nuova_password')
+        
+        if vecchia_password and nuova_password:
+            # Verifica che la vecchia password sia corretta
+            if not check_password_hash(utente.password, vecchia_password):
+                raise ValueError("La vecchia password non è corretta.")
+            
+            # Valida la nuova password usando i vincoli esistenti
+            if not GestoreUtente.validaPassword(nuova_password):
+                raise ValueError("La nuova password deve avere almeno 8 caratteri, un numero e un carattere speciale.")
+            
+            # Genera il nuovo hash e aggiorna
+            utente.password = generate_password_hash(nuova_password)
+
+        # Aggiornamento dati anagrafici
         utente.nome = dati_form.get('nome', utente.nome)
         utente.cognome = dati_form.get('cognome', utente.cognome)
         utente.numTelefono = dati_form.get('numTelefono', utente.numTelefono)

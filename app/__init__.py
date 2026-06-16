@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
 
+
+
 # RNF-1: Caricamento esplicito delle configurazioni dal file .env
 load_dotenv()
 
@@ -34,9 +36,10 @@ def create_app():
     
     login_manager.login_view = 'gestione_utente.login'
 
-    # Registrazione del package logico
     from app.GestioneUtente import gestione_utente_bp
+    from app.GestioneAnnunci import gestione_annunci_bp
     app.register_blueprint(gestione_utente_bp)
+    app.register_blueprint(gestione_annunci_bp)
 
     from app.GestioneUtente.models import Utente
     @login_manager.user_loader
