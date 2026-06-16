@@ -25,7 +25,7 @@ def login():
             
             else:
                 login_user(utente)
-                return redirect(url_for('gestione_utente.profilo'))
+                return redirect(url_for('gestione_annunci.index'))
         else:
             flash('Credenziali errate. Riprova.', 'danger')
             

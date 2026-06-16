@@ -24,7 +24,7 @@ class GestoreUtente:
             return False
         if not re.search(r"\d", password):#verifico la presenza di un carettere maiuscolo
             return False
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password): #verfico la presenza di un carattere speciale
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>_]", password): #verfico la presenza di un carattere speciale
             return False
         return True
 

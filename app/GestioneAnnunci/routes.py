@@ -39,7 +39,7 @@ def modifica_annuncio(id):
     # Controllo autorizzazione: il locatore può modificare solo i SUOI annunci
     if annuncio.locatore_id != current_user.id:
         flash('Azione non autorizzata.', 'danger')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('gestione_annunci.index'))
 
     if request.method == 'POST':
         # Recupera le foto che l'utente ha spuntato per l'eliminazione
@@ -97,8 +97,16 @@ def visibilita_annuncio(id):
 def miei_annunci():
     if current_user.ruolo != 'locatore':
         flash('Accesso consentito solo ai locatori.', 'danger')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('index'))
     
     # Recupera tutti gli annunci inseriti dall'utente locatore loggato
     annunci_locatore = AnnuncioStanza.query.filter_by(locatore_id=current_user.id).all()
     return render_template('gestione_annunci/miei_annunci.html', annunci=annunci_locatore)
+
+
+@gestione_annunci_bp.route('/', methods=['GET'])
+@login_required
+def index():
+    annunci = AnnuncioStanza.query.filter_by(visibile=True).all()
+
+    return render_template('index.html', annunci=annunci)

@@ -38,7 +38,7 @@ class AnnuncioStanza(db.Model):
     locatore_id = db.Column(db.Integer, db.ForeignKey('locatore.id'), nullable=False)
     
     # Relazione con il locatore
-    locatore = db.relationship('Locatore', backref=db.backref('annunci_pubblicati', lazy=True))
+    locatore = db.relationship('Locatore', backref=db.backref('annunci_pubblicati', lazy=True, cascade="all, delete-orphan"))
     # Relazione 1-a-Molti con FotoAnnuncio
     foto = db.relationship('FotoAnnuncio', backref='annuncio', lazy=True, cascade="all, delete-orphan")
 

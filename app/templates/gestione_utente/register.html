@@ -1,47 +1,64 @@
 {% extends 'base.html' %}
+
+{# Nasconde la navbar #}
+{% block navbar %}{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 bg-white p-5 rounded shadow">
-        <h2 class="mb-4">Register your account</h2>
-        <form method="POST" action="{{ url_for('gestione_utente.register') }}">
-            <div class="mb-3 d-flex gap-2">
-                <input type="text" name="nome" class="form-control" placeholder="Nome" required>
-                <input type="text" name="cognome" class="form-control" placeholder="Cognome" required>
-            </div>
-            <div class="mb-3">
-                <input type="email" name="email" class="form-control" placeholder="Email" required>
-            </div>
-            <div class="mb-3">
-                <input type="text" name="numTelefono" class="form-control" placeholder="Numero di telefono">
-            </div>
-            <div class="mb-3">
-                <input type="password" name="password" class="form-control" placeholder="Password" required>
-            </div>
-            <div class="mb-3">
-                <select name="ruolo" id="ruoloSelect" class="form-select" onchange="toggleStudentFields()" required>
-                    <option value="" disabled selected>Seleziona Ruolo</option>
-                    <option value="studente">Studente</option>
-                    <option value="locatore">Locatore</option>
-                </select>
+<div class="row justify-content-center align-items-center min-vh-100 py-5">
+    <div class="col-md-6">
+        <div class="card bg-white p-5 rounded-4 shadow-sm border-0">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Register your account</h2>
+                <p class="text-muted">Crea il tuo profilo su UniAlloggi</p>
             </div>
             
-            <div id="studentFields" style="display: none;">
-                <div class="mb-3">
-                    <input type="text" name="universita" class="form-control" placeholder="Università">
+            <form method="POST" action="{{ url_for('gestione_utente.register') }}">
+                <div class="row mb-3 g-2">
+                    <div class="col">
+                        <input type="text" name="nome" class="form-control form-control-lg bg-light border-0" placeholder="Nome" required>
+                    </div>
+                    <div class="col">
+                        <input type="text" name="cognome" class="form-control form-control-lg bg-light border-0" placeholder="Cognome" required>
+                    </div>
                 </div>
                 <div class="mb-3">
-                    <input type="text" name="facolta" class="form-control" placeholder="Facoltà">
+                    <input type="email" name="email" class="form-control form-control-lg bg-light border-0" placeholder="Email" required>
                 </div>
                 <div class="mb-3">
-                    <input type="text" name="corso" class="form-control" placeholder="Corso di studi">
+                    <input type="text" name="numTelefono" class="form-control form-control-lg bg-light border-0" placeholder="Numero di telefono (opzionale)">
                 </div>
-            </div>
+                <div class="mb-3">
+                    <input type="password" name="password" class="form-control form-control-lg bg-light border-0" placeholder="Password" required>
+                </div>
+                <div class="mb-4">
+                    <select name="ruolo" id="ruoloSelect" class="form-select form-select-lg bg-light border-0 text-muted" onchange="toggleStudentFields()" required>
+                        <option value="" disabled selected>Seleziona Ruolo</option>
+                        <option value="studente">Studente</option>
+                        <option value="locatore">Locatore</option>
+                    </select>
+                </div>
+                
+                <div id="studentFields" style="display: none;" class="p-3 bg-light rounded-3 mb-4">
+                    <h6 class="text-muted mb-3">Dati Universitari</h6>
+                    <div class="mb-3">
+                        <input type="text" name="universita" class="form-control border-0" placeholder="Università">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="facolta" class="form-control border-0" placeholder="Facoltà">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="corso" class="form-control border-0" placeholder="Corso di studi">
+                    </div>
+                </div>
 
-            <button type="submit" class="btn btn-dark w-100">Sign in</button>
-            <div class="text-center mt-3">
-                <a href="{{ url_for('gestione_utente.login') }}" class="text-decoration-none">Hai già un account? Log In</a>
-            </div>
-        </form>
+                <button type="submit" class="btn btn-dark btn-lg w-100 rounded-3 mb-3">Sign up</button>
+                
+                <div class="text-center mt-3">
+                    <span class="text-muted small">Hai già un account? </span>
+                    <a href="{{ url_for('gestione_utente.login') }}" class="text-dark fw-bold text-decoration-none">Log In</a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -53,6 +70,10 @@
             studentFields.style.display = 'block';
         } else {
             studentFields.style.display = 'none';
+            // Opzionale: svuotare i campi se l'utente cambia idea e sceglie locatore
+            document.querySelector('input[name="universita"]').value = '';
+            document.querySelector('input[name="facolta"]').value = '';
+            document.querySelector('input[name="corso"]').value = '';
         }
     }
 </script>

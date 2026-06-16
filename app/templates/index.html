@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Cerca il tuo alloggio con UniAlloggi{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-5 border-0">
+    <div class="card-body p-4">
+        <h4 class="card-title mb-4 fw-bold text-primary">Trova il tuo alloggio ideale</h4>
+        <form action="{{ url_for('gestione_annunci.index') }}" method="GET" class="row g-3">
+            <div class="col-md-5">
+                <label for="ricerca" class="form-label text-muted">Dove vuoi andare?</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0" id="ricerca" name="query" placeholder="Cerca per città, università o via..." value="{{ request.args.get('query', '') }}">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="prezzo_max" class="form-label text-muted">Prezzo massimo (€)</label>
+                <input type="number" class="form-control" id="prezzo_max" name="prezzo_max" placeholder="Es. 400" value="{{ request.args.get('prezzo_max', '') }}">
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Cerca</button>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{{ url_for('gestione_annunci.index') }}" class="btn btn-outline-secondary w-100 py-2">Resetta</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold m-0">Annunci in evidenza</h5>
+    <span class="text-muted">{{ annunci|length }} risultati trovati</span>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+    {% for annuncio in annunci %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title fw-bold text-primary mb-0">€ {{ annuncio.costo }}<span class="fs-6 fw-normal text-muted">/mese</span></h5>
+                        <span class="badge bg-light text-dark border"><i class="bi bi-house"></i> Stanza</span>
+                    </div>
+                    
+                    <p class="card-text text-muted mb-3">
+                        <i class="bi bi-geo-alt-fill text-danger"></i> {{ annuncio.indirizzo }}
+                    </p>
+                    
+                    <p class="card-text small text-truncate" title="{{ annuncio.descrizione }}">
+                        {{ annuncio.descrizione }}
+                    </p>
+                </div>
+                
+                <div class="card-footer bg-white border-top border-light p-3">
+                    <a href="#" class="btn btn-outline-primary w-100">Mostra Dettagli</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <h1 class="text-muted mb-3"><i class="bi bi-search"></i></h1>
+            <h5>Nessun annuncio trovato.</h5>
+            <p class="text-muted">Prova a modificare i filtri di ricerca per ottenere più risultati.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
