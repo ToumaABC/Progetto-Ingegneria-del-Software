@@ -19,6 +19,19 @@
                 <label for="prezzo_max" class="form-label text-muted">Prezzo massimo (€)</label>
                 <input type="number" class="form-control" id="prezzo_max" name="prezzo_max" placeholder="Es. 400" value="{{ request.args.get('prezzo_max', '') }}">
             </div>
+            <div class="col-12 mt-2">
+                <label class="form-label text-muted mb-2">Filtra per servizi:</label>
+                <div class="d-flex flex-wrap gap-3">
+                    {% for s in servizi %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="servizi" value="{{ s.id }}" id="serv_{{ s.id }}" 
+                                {% if s.id|string in request.args.getlist('servizi') %}checked{% endif %}>
+                            <label class="form-check-label text-muted small" for="serv_{{ s.id }}">
+                                {{ s.nome_servizio }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
 
             <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Cerca</button>
@@ -39,7 +52,9 @@
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
     {% for annuncio in annunci %}
         <div class="col">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card shadow-sm border-0" style="width: 18rem;">
+                <img src="{{ url_for('static', filename=annuncio.foto[0].percorso_file) }}" alt="Anteprima" class="card-img-top">
+
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h5 class="card-title fw-bold text-primary mb-0">€ {{ annuncio.costo }}<span class="fs-6 fw-normal text-muted">/mese</span></h5>

@@ -51,11 +51,3 @@ class Servizio(db.Model):
     
     def __repr__(self):
         return f"{self.nome_servizio}"
-
-class FotoAnnuncio(db.Model):
-    __tablename__ = 'foto_annuncio'
-    
-    id_foto = db.Column(db.Integer, primary_key=True)
-    percorso_file = db.Column(db.String(255), nullable=False) 
-    
-    annuncio_id = db.Column(db.Integer, db.ForeignKey('annuncio_stanza.id'), nullable=False)

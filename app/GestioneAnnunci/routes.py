@@ -109,4 +109,14 @@ def miei_annunci():
 def index():
     annunci = AnnuncioStanza.query.filter_by(visibile=True).all()
 
-    return render_template('index.html', annunci=annunci)
+    query_testo = request.args.get('query')
+    prezzo_max = request.args.get('prezzo_max')
+    
+    servizi_selezionati = request.args.getlist('servizi')
+
+    # Chiamiamo la funzione Base del Gestore, passandole anche i filtri estesi
+    annunci = GestoreAnnunci.ricerca_annunci(query_testo=query_testo, prezzo_max=prezzo_max, servizi_selezionati=servizi_selezionati)
+
+    servizi = Servizio.query.all()
+
+    return render_template('index.html', annunci=annunci, servizi=servizi)

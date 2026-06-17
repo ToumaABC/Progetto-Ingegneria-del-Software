@@ -7,7 +7,7 @@ from flask_mail import Mail
 
 
 
-# RNF-1: Caricamento esplicito delle configurazioni dal file .env
+# Caricamento esplicito delle configurazioni dal file .env
 load_dotenv()
 
 db = SQLAlchemy()
@@ -47,6 +47,16 @@ def create_app():
         return Utente.query.get(int(user_id))
 
     with app.app_context():
+
+        from app.GestioneAnnunci.models import Servizio
+        servizi_default = ["WiFi", "Aria Condizionata", "Lavatrice", "Riscaldamento", "Ascensore", "Posto Auto"]
+        
+        if not Servizio.query.first():
+            for nome in servizi_default:
+                nuovo_servizio = Servizio(nome_servizio=nome)
+                db.session.add(nuovo_servizio)
+            db.session.commit()
+
         db.create_all()
 
     return app
