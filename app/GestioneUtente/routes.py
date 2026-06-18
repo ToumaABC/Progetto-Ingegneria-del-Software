@@ -54,15 +54,6 @@ def logout():
     flash('Logout effettuato con successo.', 'info')
     return redirect(url_for('gestione_utente.login'))
 
-@gestione_utente_bp.route('/profilo', methods=['GET'])
-@login_required
-def profilo():
-    """
-    RF-4 / Caso d'uso 4: Visualizza profilo.
-    Mostra i dati dell'utente corrente e adatta la vista se l'attore è uno Studente.
-    """
-    # Passiamo l'utente corrente (current_user) al template
-    return render_template('gestione_utente/profilo.html', utente=current_user)
 
 
 @gestione_utente_bp.route('/verify/<token>', methods=['GET'])
@@ -129,3 +120,21 @@ def forgot_password():
             flash(str(e), 'danger')
             
     return render_template('gestione_utente/forgot_password.html')
+
+
+
+@gestione_utente_bp.route('/profilo', defaults={'id': None}, methods=['GET'])
+@gestione_utente_bp.route('/profilo/<int:id>', methods=['GET'])
+@login_required
+def profilo(id):
+
+    target_id = id if id is not None else current_user.id
+    
+    
+    try:
+        utente_da_visualizzare = GestoreUtente.visualizzaProfilo(target_id)
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for('gestione_annunci.index'))
+
+    return render_template('gestione_utente/profilo.html', utente=utente_da_visualizzare)

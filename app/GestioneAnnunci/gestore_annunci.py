@@ -7,7 +7,6 @@ from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
 
 
-
 class GestoreAnnunci:
 
     @staticmethod

@@ -3,84 +3,160 @@
 {% block title %}Home - Cerca il tuo alloggio con UniAlloggi{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm mb-5 border-0">
-    <div class="card-body p-4">
-        <h4 class="card-title mb-4 fw-bold text-primary">Trova il tuo alloggio ideale</h4>
-        <form action="{{ url_for('gestione_annunci.index') }}" method="GET" class="row g-3">
-            <div class="col-md-5">
-                <label for="ricerca" class="form-label text-muted">Dove vuoi andare?</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control border-start-0" id="ricerca" name="query" placeholder="Cerca per città, università o via..." value="{{ request.args.get('query', '') }}">
-                </div>
-            </div>
+
+<!-- MAIN SEARCH BAR -->
+<div class="mb-4">
+    <form action="{{ url_for('gestione_annunci.index') }}" method="GET" id="searchForm">
+        <!-- Barra di ricerca stile mockup -->
+        <div class="bg-secondary bg-opacity-10 p-2 rounded-pill d-flex align-items-center mb-3 shadow-sm">
+            <i class="bi bi-search text-muted ms-3 me-2 fs-5"></i>
+            <input type="text" class="form-control bg-transparent border-0 shadow-none fs-5 py-2" id="ricerca" name="query" placeholder="Cerca per città, università o via..." value="{{ request.args.get('query', '') }}">
             
-            <div class="col-md-3">
-                <label for="prezzo_max" class="form-label text-muted">Prezzo massimo (€)</label>
-                <input type="number" class="form-control" id="prezzo_max" name="prezzo_max" placeholder="Es. 400" value="{{ request.args.get('prezzo_max', '') }}">
+            <div class="d-flex gap-2 pe-1">
+                <button class="btn btn-light rounded-circle text-primary shadow-sm d-flex align-items-center justify-content-center" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="width: 45px; height: 45px;" title="Filtri Avanzati">
+                    <i class="bi bi-plus-lg fs-5"></i>
+                </button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm d-none d-md-block">Cerca</button>
             </div>
-            <div class="col-12 mt-2">
-                <label class="form-label text-muted mb-2">Filtra per servizi:</label>
-                <div class="d-flex flex-wrap gap-3">
-                    {% for s in servizi %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="servizi" value="{{ s.id }}" id="serv_{{ s.id }}" 
-                                {% if s.id|string in request.args.getlist('servizi') %}checked{% endif %}>
-                            <label class="form-check-label text-muted small" for="serv_{{ s.id }}">
-                                {{ s.nome_servizio }}
-                            </label>
-                        </div>
-                    {% endfor %}
-                </div>
+        </div>
 
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Cerca</button>
-            </div>
-            
-            <div class="col-md-2 d-flex align-items-end">
-                <a href="{{ url_for('gestione_annunci.index') }}" class="btn btn-outline-secondary w-100 py-2">Resetta</a>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="fw-bold m-0">Annunci in evidenza</h5>
-    <span class="text-muted">{{ annunci|length }} risultati trovati</span>
-</div>
-
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
-    {% for annuncio in annunci %}
-        <div class="col">
-            <div class="card shadow-sm border-0" style="width: 18rem;">
-                <img src="{{ url_for('static', filename=annuncio.foto[0].percorso_file) }}" alt="Anteprima" class="card-img-top">
-
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title fw-bold text-primary mb-0">€ {{ annuncio.costo }}<span class="fs-6 fw-normal text-muted">/mese</span></h5>
-                        <span class="badge bg-light text-dark border"><i class="bi bi-house"></i> Stanza</span>
+        <!-- FILTRI AVANZATI (Nascosti per default) -->
+        <div class="collapse" id="advancedFilters">
+            <div class="card card-body border-0 shadow-sm rounded-4 mb-4 bg-white">
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <label for="prezzo_max" class="form-label text-muted fw-semibold">Prezzo massimo (€)</label>
+                        <input type="number" class="form-control bg-light border-0" id="prezzo_max" name="prezzo_max" placeholder="Es. 400" value="{{ request.args.get('prezzo_max', '') }}">
                     </div>
                     
-                    <p class="card-text text-muted mb-3">
-                        <i class="bi bi-geo-alt-fill text-danger"></i> {{ annuncio.indirizzo }}
-                    </p>
+                    <div class="col-md-9">
+                        <label class="form-label text-muted fw-semibold">Servizi richiesti:</label>
+                        <div class="d-flex flex-wrap gap-3 mt-1">
+                            {% for s in servizi %}
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" name="servizi" value="{{ s.id }}" id="serv_{{ s.id }}" 
+                                        {% if s.id|string in request.args.getlist('servizi') %}checked{% endif %}>
+                                    <label class="form-check-label text-secondary" for="serv_{{ s.id }}">
+                                        {{ s.nome_servizio }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     
-                    <p class="card-text small text-truncate" title="{{ annuncio.descrizione }}">
-                        {{ annuncio.descrizione }}
-                    </p>
+                    <div class="col-12 d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+                        <a href="{{ url_for('gestione_annunci.index') }}" class="btn btn-outline-secondary rounded-pill px-4">Resetta</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Applica filtri</button>
+                    </div>
                 </div>
-                
-                <div class="card-footer bg-white border-top border-light p-3">
-                    <a href="#" class="btn btn-outline-primary w-100">Mostra Dettagli</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="d-flex align-items-center flex-wrap gap-2 mb-5">
+    <h6 class="fw-bold m-0 me-2 text-dark">Soluzione ricerca:</h6>
+    
+    {% if not request.args.get('query') and not request.args.get('prezzo_max') and not request.args.getlist('servizi') %}
+        <span class="badge text-bg-light text-secondary border px-3 py-2 rounded-pill fw-normal">Nessun filtro applicato</span>
+    {% else %}
+        {% if request.args.get('query') %}
+            <span class="badge text-bg-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 fw-normal">
+                Testo: {{ request.args.get('query') }}
+            </span>
+        {% endif %}
+        
+        {% if request.args.get('prezzo_max') %}
+            <span class="badge text-bg-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 fw-normal">
+                Max €{{ request.args.get('prezzo_max') }}
+            </span>
+        {% endif %}
+        
+        {% for s in servizi %}
+            {% if s.id|string in request.args.getlist('servizi') %}
+                <span class="badge text-bg-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 fw-normal">
+                    {{ s.nome_servizio }}
+                </span>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="row g-4 mb-5">
+    {% for annuncio in annunci %}
+        <div class="col-12">
+            <!-- La card orizzontale con overflow nascosto per non far sbordare le immagini -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                <div class="row g-0">
+                    
+                    <!-- COLONNA IMMAGINE (Altezza fissa a 240px per tutte le immagini) -->
+                    <div class="col-md-4 col-lg-3" style="height: 240px;">
+                        {% if annuncio.foto %}
+                            <!-- object-fit-cover taglia l'immagine senza deformarla, riempiendo lo spazio -->
+                            <img src="{{ url_for('static', filename=annuncio.foto[0].percorso_file) }}" alt="Foto di {{ annuncio.titolo }}" class="img-fluid w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <div class="w-100 h-100 bg-light d-flex flex-column align-items-center justify-content-center text-muted">
+                                <i class="bi bi-image fs-1 opacity-50"></i>
+                                <span class="small mt-2 opacity-50">Nessuna foto</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- COLONNA CONTENUTO -->
+                    <div class="col-md-8 col-lg-9">
+                        <div class="card-body d-flex flex-column h-100 p-4">
+                            
+                            <!-- Titolo, Indirizzo e Prezzo -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h4 class="card-title fw-bold text-dark mb-1">{{ annuncio.titolo }}</h4>
+                                    <p class="text-muted small m-0"><i class="bi bi-geo-alt-fill text-danger"></i> {{ annuncio.indirizzo }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <h4 class="fw-bold text-primary mb-0">€ {{ "%.2f"|format(annuncio.costo) }}</h4>
+                                    <span class="fs-6 fw-normal text-muted small">/mese</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Descrizione troncata -->
+                            <p class="card-text text-secondary mb-4" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                {{ annuncio.descrizione }}
+                            </p>
+                            
+                            <div class="mt-auto d-flex flex-wrap justify-content-between align-items-end gap-3">
+                                <a href="{{ url_for('gestione_annunci.visualizza_annuncio', id=annuncio.id) }}" class="btn btn-outline-primary w-100">Mostra Dettagli</a>
+                                
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for associazione in annuncio.servizi_collegati %}
+                                        <span class="badge text-bg-dark rounded-pill fw-normal px-3 py-2">
+                                            {{ associazione.servizio.nome_servizio }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
     {% else %}
-        <div class="col-12 text-center py-5">
-            <h1 class="text-muted mb-3"><i class="bi bi-search"></i></h1>
-            <h5>Nessun annuncio trovato.</h5>
-            <p class="text-muted">Prova a modificare i filtri di ricerca per ottenere più risultati.</p>
+        <!-- MESSAGGIO NESSUN RISULTATO -->
+        <div class="col-12">
+            <div class="text-center py-5 bg-white rounded-4 border shadow-sm">
+                <i class="bi bi-house-x text-muted" style="font-size: 4rem;"></i>
+                <h4 class="fw-bold text-dark mt-3">Nessun annuncio trovato.</h4>
+                <p class="text-muted">La tua ricerca non ha prodotto risultati. Prova a rimuovere qualche tag.</p>
+                <a href="{{ url_for('gestione_annunci.index') }}" class="btn btn-primary rounded-pill px-4 mt-3">Resetta la ricerca</a>
+            </div>
         </div>
     {% endfor %}
 </div>
+
+<!-- FOOTER -->
+<div class="text-center py-4 text-muted small">
+    @2026 UniAlloggi. Tutti i diritti riservati.
+</div>
+
 {% endblock %}

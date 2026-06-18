@@ -1,24 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row">
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center bg-dark text-white rounded-top p-4">
-                <h4 class="mb-1">{{ utente.nome }} {{ utente.cognome }}</h4>
-                <p class="badge bg-light text-dark text-capitalize mb-0">{{ utente.ruolo }}</p>
-            </div>
-            <div class="list-group list-group-flush">
-                <a href="{{ url_for('gestione_utente.profilo') }}" class="list-group-item list-group-item-action text-secondary">Visualizza profilo</a>
-                <a href="#" class="list-group-item list-group-item-action text-dark fw-semibold bg-light">Modifica il profilo</a>
-                <a href="{{ url_for('gestione_utente.logout') }}" class="list-group-item list-group-item-action list-group-item-danger text-center fw-bold">Log Out</a>
-            </div>
-        </div>
-    </div>
-
+<div class="row justify-content-center mt-4">
     <div class="col-md-8">
-        <div class="card shadow-sm p-4 bg-white mb-4">
-            <h3 class="border-bottom pb-3 mb-4 text-dark">Modifica Informazioni profilo</h3>
-            
+        
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-dark"><i class="bi bi-pencil-square me-2"></i>Modifica Profilo</h2>
+            <p class="text-muted">Aggiorna le tue informazioni personali</p>
+        </div>
+
+        <div class="card shadow-sm p-4 bg-white mb-4 border-0">
             <form method="POST" action="{{ url_for('gestione_utente.modifica_profilo') }}">
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -40,7 +30,7 @@
                 </div>
 
                 {% if utente.ruolo == 'studente' %}
-                <h3 class="border-bottom pb-3 mb-3 text-primary">Dati Universitari</h3>
+                <h5 class="border-bottom pb-2 mb-3 text-primary mt-4">Dati Universitari</h5>
                 <div class="row g-3 mb-4">
                     <div class="col-md-12">
                         <label class="form-label text-muted small fw-bold">UNIVERSITÀ</label>
@@ -57,7 +47,7 @@
                 </div>
                 {% endif %}
 
-                <h3 class="border-bottom pb-3 mb-4 mt-4">Modifica Password (Opzionale)</h3>
+                <h5 class="border-bottom pb-2 mb-3 mt-4 text-dark">Modifica Password (Opzionale)</h5>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label text-muted small fw-bold">VECCHIA PASSWORD</label>
@@ -68,13 +58,13 @@
                         <input type="password" name="nuova_password" class="form-control" placeholder="Inserisci nuova password">
                     </div>
                     <div class="col-md-12">
-                        <p class="text-muted small"><em>* Compila questi campi solo se desideri cambiare la tua password attuale. La nuova password deve contenere almeno 8 caratteri, un numero e un carattere speciale.</em></p>
+                        <p class="text-muted small mb-0"><em>* Compila questi campi solo se desideri cambiare la tua password attuale. La nuova password deve contenere almeno 8 caratteri, un numero e un carattere speciale.</em></p>
                     </div>
                 </div>
 
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 justify-content-end border-top pt-4 mt-2">
+                    <a href="{{ url_for('gestione_utente.profilo') }}" class="btn btn-outline-secondary px-4">Annulla</a>
                     <button type="submit" class="btn btn-dark px-4">Salva Modifiche</button>
-                    <a href="{{ url_for('gestione_utente.profilo') }}" class="btn btn-outline-secondary">Annulla</a>
                 </div>
             </form>
         </div>

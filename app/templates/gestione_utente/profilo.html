@@ -1,87 +1,78 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="row">
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center bg-dark text-white rounded-top p-4">
-                <h4 class="mb-1">{{ utente.nome }} {{ utente.cognome }}</h4>
-                <p class="badge bg-light text-dark text-capitalize mb-0">{{ utente.ruolo }}</p>
-            </div>
-            <div class="list-group list-group-flush">
-                <a href="{{ url_for('gestione_utente.modifica_profilo') }}" class="list-group-item list-group-item-action text-secondary">Modifica il profilo</a>
-                
-                {% if utente.ruolo == 'locatore' %}
-                    <a href="#" class="list-group-item list-group-item-action text-secondary">Gestione annuncio</a>
-                {% endif %}
-                
-                <a href="#" class="list-group-item list-group-item-action text-secondary">Ticket</a>
-                <a href="#" class="list-group-item list-group-item-action text-secondary d-flex justify-content-between align-items-center">
-                    Versione <span class="text-muted small">2026.1</span>
-                </a>
-                <form action="{{ url_for('gestione_utente.elimina_account') }}" method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare definitivamente il tuo account? L\'azione è irreversibile.');" class="p-0 m-0">
-                    <button type="submit" class="list-group-item list-group-item-action text-danger fw-semibold w-100 text-start border-0 rounded-0">Elimina account</button>
-                </form>
-                <a href="{{ url_for('gestione_utente.logout') }}" class="list-group-item list-group-item-action list-group-item-danger text-center fw-bold mt-2">Log Out</a>
-            </div>
-        </div>
-    </div>
 
+{% block title %}Profilo di {{ utente.nome }} {{ utente.cognome }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
     <div class="col-md-8">
-        <div class="card shadow-sm p-4 bg-white mb-4">
-            <h3 class="border-bottom pb-3 mb-4 text-dark">Informazioni Account</h3>
+        
+        <div class="text-center mb-5">
+            <i class="bi bi-person-circle display-1 text-secondary mb-3"></i>
+            <h2 class="mb-1 fw-bold text-dark">{{ utente.nome }} {{ utente.cognome }}</h2>
+            <span class="badge {% if utente.ruolo == 'locatore' %}bg-dark{% else %}bg-primary{% endif %} text-capitalize px-3 py-2 fs-6 mt-2 shadow-sm">
+                {{ utente.ruolo }}
+            </span>
+        </div>
+
+        <div class="card shadow-sm p-4 bg-white mb-4 border-0">
+            <h4 class="border-bottom pb-3 mb-4 text-dark"><i class="bi bi-info-circle me-2"></i>Informazioni Account</h4>
             
-            <div class="row g-3">
+            <div class="row g-4">
                 <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Nome</label>
-                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.nome }}</p>
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Nome</label>
+                    <p class="fs-5 border-bottom pb-2">{{ utente.nome }}</p>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Cognome</label>
-                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.cognome }}</p>
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Cognome</label>
+                    <p class="fs-5 border-bottom pb-2">{{ utente.cognome }}</p>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Indirizzo Email</label>
-                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.email }}</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Numero di Telefono</label>
-                    <p class="form-control-plaintext fs-5 border-bottom pb-1">
-                        {% if utente.numTelefono %}{{ utente.numTelefono }}{% else %}<span class="text-muted italic small">Non inserito</span>{% endif %}
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Indirizzo Email</label>
+                    <p class="fs-5 border-bottom pb-2">
+                        <a href="mailto:{{ utente.email }}" class="text-decoration-none text-dark">{{ utente.email }}</a>
                     </p>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Stato Verifica</label>
-                    <p class="form-control-plaintext border-bottom pb-1">
-                        {% if utente.verificato %}
-                            <span class="badge bg-success">Verificato ed Attivo</span>
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Numero di Telefono</label>
+                    <p class="fs-5 border-bottom pb-2">
+                        {% if utente.numTelefono %}
+                            {{ utente.numTelefono }}
                         {% else %}
-                            <span class="badge bg-warning text-dark">In attesa di verifica</span>
+                            <span class="text-muted fst-italic fs-6">Non inserito</span>
                         {% endif %}
                     </p>
+                </div>
+                <div class="col-md-12 text-center mt-4">
+                    {% if utente.verificato %}
+                        <span class="badge bg-success px-3 py-2 fs-6"><i class="bi bi-check-circle me-1"></i> Utente Verificato</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark px-3 py-2 fs-6"><i class="bi bi-exclamation-circle me-1"></i> In attesa di verifica</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
         {% if utente.ruolo == 'studente' %}
-        <div class="card shadow-sm p-4 bg-white border-start border-4 border-primary">
-            <h3 class="border-bottom pb-3 mb-4 text-primary">Dettagli Accademici</h3>
+        <div class="card shadow-sm p-4 bg-white border-0 border-start border-4 border-primary mt-4">
+            <h4 class="border-bottom pb-3 mb-4 text-primary"><i class="bi bi-mortarboard-fill me-2"></i>Dettagli Accademici</h4>
             
-            <div class="row g-3">
+            <div class="row g-4">
                 <div class="col-md-12">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Università frequentata</label>
-                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.universita }}</p>
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Università frequentata</label>
+                    <p class="fs-5 border-bottom pb-2">{{ utente.universita or '<span class="text-muted fst-italic fs-6">Non specificata</span>'|safe }}</p>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Facoltà</label>
-                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.facolta }}</p>
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Facoltà</label>
+                    <p class="fs-5 border-bottom pb-2">{{ utente.facolta or '<span class="text-muted fst-italic fs-6">Non specificata</span>'|safe }}</p>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold text-uppercase">Corso di Laurea</label>
-                    <p class="form-control-plaintext fs-5 border-bottom pb-1">{{ utente.corso }}</p>
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Corso di Laurea</label>
+                    <p class="fs-5 border-bottom pb-2">{{ utente.corso or '<span class="text-muted fst-italic fs-6">Non specificato</span>'|safe }}</p>
                 </div>
             </div>
         </div>
         {% endif %}
+        
     </div>
 </div>
 {% endblock %}

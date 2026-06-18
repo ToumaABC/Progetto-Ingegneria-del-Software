@@ -55,8 +55,99 @@
                             <form action="{{ url_for('gestione_annunci.elimina_annuncio', id=annuncio.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Sei sicuro di voler eliminare permanentemente questo annuncio?');">
                                 <button type="submit" class="btn btn-sm btn-danger">Elimina</button>
                             </form>
+                            <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#associaModal{{ annuncio.id }}">
+                                Associa
+                            </button>
 
-                            <button class="btn btn-sm btn-info text-white" disabled>Associa Inquilino</button>
+                            <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#inquiliniModal{{ annuncio.id }}">
+                                Inquilini
+                            </button>
+                            <div class="modal fade" id="associaModal{{ annuncio.id }}" tabindex="-1" aria-labelledby="associaModalLabel{{ annuncio.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content p-4 border-0 shadow" style="background-color: #f4f4f4; border-radius: 15px;">
+                                    
+                                    <!-- Pulsante di chiusura X -->
+                                    <div class="text-end">
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    
+                                    <div class="modal-body text-center">
+                                        <h1 class="modal-title fw-bold mb-4" id="associaModalLabel{{ annuncio.id }}" style="letter-spacing: -1px;">Associazione inquilino</h1>
+                                        
+                                        <form action="{{ url_for('gestione_stanza.associa_studente', id=annuncio.id) }}" method="POST" class="d-flex flex-column align-items-center">
+                                        
+                                        <!-- Box Input in stile Mockup -->
+                                        <div class="bg-white p-3 rounded shadow-sm w-100" style="max-width: 350px;">
+                                            <div class="mb-3 text-start">
+                                                <label class="form-label text-muted small fw-bold mb-1">Email</label>
+                                                <input type="email" name="email_studente" class="form-control text-muted" placeholder="example@gmail.com" required style="border-radius: 8px;">
+                                            </div>
+                                            <button type="submit" class="btn btn-dark w-100 fw-bold" style="border-radius: 8px; padding: 10px;">Cerca</button>
+                                        </div>
+                                        
+                                        </form>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="modal fade" id="inquiliniModal{{ annuncio.id }}" tabindex="-1" aria-labelledby="inquiliniModalLabel{{ annuncio.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow">
+                                    
+                                    <div class="modal-header bg-dark text-white">
+                                        <h5 class="modal-title fw-bold" id="inquiliniModalLabel{{ annuncio.id }}"><i class="bi bi-people-fill me-2"></i>Inquilini della Stanza</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    
+                                    <div class="modal-body p-4">
+                                        
+                                        {% if annuncio.associazioni %}
+                                            <ul class="list-group list-group-flush mb-0">
+                                            {% for assoc in annuncio.associazioni %}
+                                                {% if assoc.attiva %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                                                    
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-person-circle fs-3 text-secondary me-3"></i>
+                                                        <div>
+                                                            <div class="fw-bold">{{ assoc.studente.nome }} {{ assoc.studente.cognome }}</div>
+                                                            <div class="small text-muted">{{ assoc.studente.email }}</div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <form action="{{ url_for('gestione_stanza.annulla_associazione', annuncio_id=annuncio.id, studente_id=assoc.studente.id) }}" method="POST" class="m-0" onsubmit="return confirm('Sei sicuro di voler dissociare questo studente dall\'alloggio?');">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-person-x-fill me-1"></i> Rimuovi
+                                                        </button>
+                                                    </form>
+                                                    
+                                                </li>
+                                                {% endif %}
+                                            {% endfor %}
+                                            </ul>
+                                            
+                                            {% set attivi = annuncio.associazioni | selectattr("attiva", "equalto", true) | list %}
+                                            {% if not attivi %}
+                                                <div class="text-center text-muted my-3">
+                                                    <i class="bi bi-info-circle display-6 mb-2"></i>
+                                                    <p>Nessun inquilino attualmente associato.</p>
+                                                </div>
+                                            {% endif %}
+
+                                        {% else %}
+                                            <div class="text-center text-muted my-3">
+                                                <i class="bi bi-info-circle display-6 mb-2"></i>
+                                                <p>Nessun inquilino attualmente associato.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </td>
                 </tr>

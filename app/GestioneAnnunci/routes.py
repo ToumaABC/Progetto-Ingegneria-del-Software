@@ -3,6 +3,9 @@ from flask_login import login_required, current_user
 from app.GestioneAnnunci.gestore_annunci import GestoreAnnunci
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio
 from app.GestioneAnnunci import gestione_annunci_bp
+from app.GestioneStanza.gestore_stanza import GestoreStanza
+from app.GestioneUtente.gestore_utente import GestoreUtente
+
 
 
 
@@ -120,3 +123,23 @@ def index():
     servizi = Servizio.query.all()
 
     return render_template('index.html', annunci=annunci, servizi=servizi)
+
+
+@gestione_annunci_bp.route('/annuncio/<int:id>', methods=['GET'])
+@login_required
+def visualizza_annuncio(id):
+    """
+    Caso d'uso: VisualizzaAnnuncioStanza (ID: 10).
+    Orchestra le chiamate ai metodi inclusi.
+    """
+    # 1. Recupera l'annuncio
+    annuncio = AnnuncioStanza.query.get_or_404(id)
+    
+    locatore = GestoreUtente.visualizzaProfilo(annuncio.locatore_id)
+    
+    # 3. INCLUDE: VisualizzaInquilini (della stanza specifica)
+    # Questa funzione ci restituisce la lista delle associazioni
+    inquilini_associati = GestoreStanza.visualizzaInquilini(id)
+    
+    # Passiamo i dati elaborati dalle funzioni alla View
+    return render_template('gestione_annunci/visualizza_annuncio.html', annuncio=annuncio, locatore=locatore, inquilini_associati=inquilini_associati)

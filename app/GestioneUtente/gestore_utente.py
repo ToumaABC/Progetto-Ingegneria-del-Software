@@ -211,3 +211,11 @@ class GestoreUtente:
         except Exception:
             # Fallback per debug se il server SMTP non è ancora attivo
             print(f"\n[DEBUG] Nuova password generata per {email}: {nuova_password}\n")
+
+    @staticmethod
+    def visualizzaProfilo(utente_id):
+        """Caso d'uso: VisualizzaProfilo (ID: 4)"""
+        utente = Utente.query.get(utente_id)
+        if not utente:
+            raise ValueError("Utente non trovato")
+        return utente

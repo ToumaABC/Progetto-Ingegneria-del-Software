@@ -38,8 +38,11 @@ def create_app():
 
     from app.GestioneUtente import gestione_utente_bp
     from app.GestioneAnnunci import gestione_annunci_bp
+    from app.GestioneStanza import gestione_stanza_bp
     app.register_blueprint(gestione_utente_bp)
     app.register_blueprint(gestione_annunci_bp)
+    app.register_blueprint(gestione_stanza_bp)
+
 
     from app.GestioneUtente.models import Utente
     @login_manager.user_loader

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ annuncio.titolo }} - Dettagli Alloggio{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    
+    <div class="row">
+        <div class="col-md-4">
+            
+            <div class="bg-light rounded mb-4 overflow-hidden position-relative" style="height: 250px;">
+                {% if annuncio.foto %}
+                    <div id="carouselAnnuncio" class="carousel slide h-100 w-100" data-bs-ride="carousel">
+                        
+                        {% if annuncio.foto|length > 1 %}
+                        <div class="carousel-indicators">
+                            {% for f in annuncio.foto %}
+                                <button type="button" data-bs-target="#carouselAnnuncio" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}" aria-current="{% if loop.first %}true{% endif %}"></button>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="carousel-inner h-100 w-100">
+                            {% for f in annuncio.foto %}
+                                <div class="carousel-item h-100 w-100 {% if loop.first %}active{% endif %}">
+                                    <img src="{{ url_for('static', filename=f.percorso_file) }}" class="d-block w-100 h-100" style="object-fit: cover;" alt="Foto alloggio">
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if annuncio.foto|length > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselAnnuncio" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon shadow-sm" aria-hidden="true" style="filter: drop-shadow(0px 0px 3px rgba(0,0,0,0.8));"></span>
+                            <span class="visually-hidden">Precedente</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselAnnuncio" data-bs-slide="next">
+                            <span class="carousel-control-next-icon shadow-sm" aria-hidden="true" style="filter: drop-shadow(0px 0px 3px rgba(0,0,0,0.8));"></span>
+                            <span class="visually-hidden">Successivo</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="d-flex w-100 h-100 align-items-center justify-content-center">
+                        <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <ul class="list-unstyled ms-2">
+                <li class="mb-3"><i class="bi bi-record-circle text-secondary"></i> Canone mensile: <strong class="text-dark">&euro;{{ "%.2f"|format(annuncio.costo) }}</strong></li>
+                <li class="mb-3"><i class="bi bi-record-circle text-secondary"></i> Indirizzo: {{ annuncio.indirizzo }}</li>
+                
+                <li class="mb-3">
+                    <i class="bi bi-record-circle text-secondary"></i> Servizi: 
+                    {% if annuncio.servizi_collegati %}
+                        {% for sc in annuncio.servizi_collegati %}{{ sc.servizio.nome_servizio }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    {% else %}
+                        Nessuno
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-md-8 position-relative">
+            <h2 class="fw-normal mb-2">{{ annuncio.titolo }}</h2>
+            
+            <h6 class="fw-bold mt-4 mb-2">Descrizione</h6>
+            <p class="text-muted mb-5" style="white-space: pre-line; text-align: justify;">{{ annuncio.descrizione }}</p>
+
+            <hr class="mb-4">
+
+            <div class="d-flex flex-wrap gap-4 align-items-start mt-4">
+                
+                <div class="text-center">
+                    <div class="border rounded px-3 py-1 bg-white shadow-sm d-inline-block border-dark">
+                        <i class="bi bi-person-fill" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <div class="fw-bold small mt-1 text-dark">{{ locatore.nome }} {{ locatore.cognome }}</div>
+                    <div class="fw-light small text-muted mb-2">Locatore</div>
+                    
+                    <div class="text-start d-inline-block text-muted" style="font-size: 0.8rem;">
+                        <div class="mb-1"><i class="bi bi-envelope-fill me-1"></i><a href="mailto:{{ locatore.email }}" class="text-decoration-none text-secondary">{{ locatore.email }}</a></div>
+                        {% if locatore.numTelefono %}
+                            <div><i class="bi bi-telephone-fill me-1"></i>{{ locatore.numTelefono }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% for assoc in inquilini_associati %}
+                    <div class="text-center">
+                        <div class="border rounded px-3 py-1 bg-white shadow-sm d-inline-block border-primary">
+                            <i class="bi bi-person" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <div class="fw-bold small mt-1 text-dark">{{ assoc.studente.nome }} {{ assoc.studente.cognome }}</div>
+                        <div class="fw-light small mt-1 mb-2">affittuario</div>
+                        
+                        <div class="text-start d-inline-block text-muted" style="font-size: 0.8rem;">
+                            <div class="mb-1">
+                                <i class="bi bi-envelope-fill me-1"></i>
+                                <a href="mailto:{{ assoc.studente.email }}" class="text-decoration-none text-secondary">{{ assoc.studente.email }}</a>
+                            </div>
+                            {% if assoc.studente.numTelefono %}
+                                <div><i class="bi bi-telephone-fill me-1"></i>{{ assoc.studente.numTelefono }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                {% if not inquilini_associati %}
+                    <div class="text-muted small mt-4 w-100 text-center p-3 bg-light rounded border border-light">
+                        <i class="bi bi-info-circle me-1"></i> Nessun affittuario presente.
+                    </div>
+                {% endif %}
+            </div>
+            
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

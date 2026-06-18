@@ -41,11 +41,30 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarUser" role="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle"></i> Ciao, {{ current_user.nome }}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ url_for('gestione_utente.profilo') }}">Il mio Profilo</a></li>
-                                <li><a class="dropdown-item" href="#">I miei Ticket</a></li>
+      <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('gestione_utente.profilo') }}">
+                                        <i class="bi bi-person me-2"></i> Il mio Profilo
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('gestione_utente.modifica_profilo') }}">
+                                        <i class="bi bi-pencil-square me-2"></i> Modifica Profilo
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('gestione_utente.logout') }}">Esci</a></li>
+                                <li>
+                                    <a class="dropdown-item text-danger py-2" href="{{ url_for('gestione_utente.logout') }}">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Esci
+                                    </a>
+                                </li>
+                                <li>
+                                    <form action="{{ url_for('gestione_utente.elimina_account') }}" method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare definitivamente il tuo account? L\'azione è irreversibile.');" class="m-0 p-0">
+                                        <button type="submit" class="dropdown-item text-danger fw-bold py-2">
+                                            <i class="bi bi-trash me-2"></i> Elimina Account
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </li>
                     {% else %}
