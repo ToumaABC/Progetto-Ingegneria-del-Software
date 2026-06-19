@@ -29,10 +29,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('gestione_annunci.miei_annunci') }}">I miei Annunci</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('gestione_annunci.aggiungi_annuncio') }}">Pubblica Annuncio</a>
-                    </li>
                     {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('gestione_stanza.visualizza_ticket') }}">
+                            Ticket
+                        </a>
+                    </li>
                 </ul>
 
                 <ul class="navbar-nav ms-auto">

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <h2 class="mb-3">Ticket ricevuti</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if tickets_per_annuncio %}
+    {% for annuncio, tickets in tickets_per_annuncio.items() %}
+      <h5 class="mt-4">📍 {{ annuncio.indirizzo }}</h5>
+
+      {% if tickets %}
+        <div class="list-group mb-3">
+          {% for ticket in tickets %}
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1">{{ ticket.titolo }}</h6>
+                  <p class="mb-1 text-muted">{{ ticket.descrizione }}</p>
+                  <small class="text-muted">
+                    Aperto il {{ ticket.data_apertura.strftime('%d/%m/%Y') }}
+                    da <strong>{{ ticket.associazione.studente.nome }} {{ ticket.associazione.studente.cognome }}</strong>
+                  </small>
+                </div>
+                <div class="text-end">
+                  {% if ticket.stato.value == 'aperto' %}
+                    <span class="badge bg-danger mb-2 d-block">Aperto</span>
+                  {% elif ticket.stato.value == 'in_lavorazione' %}
+                    <span class="badge bg-warning text-dark mb-2 d-block">In lavorazione</span>
+                  {% else %}
+                    <span class="badge bg-success mb-2 d-block">Chiuso</span>
+                  {% endif %}
+
+                  {% if ticket.stato.value != 'chiuso' %}
+                    <form action="{{ url_for('gestione_stanza.aggiorna_stato_ticket', ticket_id=ticket.id) }}"
+                          method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        {% if ticket.stato.value == 'aperto' %}Prendi in carico{% else %}Segna chiuso{% endif %}
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted ms-2">Nessun ticket per questo annuncio.</p>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p class="text-muted">Non hai ancora ricevuto ticket.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

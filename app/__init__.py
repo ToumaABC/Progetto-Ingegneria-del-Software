@@ -7,7 +7,6 @@ from flask_mail import Mail
 
 
 
-# Caricamento esplicito delle configurazioni dal file .env
 load_dotenv()
 
 db = SQLAlchemy()
@@ -50,6 +49,13 @@ def create_app():
         return Utente.query.get(int(user_id))
 
     with app.app_context():
+        from app.GestioneUtente.models import Utente, Studente, Locatore
+        from app.GestioneAnnunci.models import AnnuncioStanza, AnnuncioSalvato, Servizio
+        from app.GestioneStanza.models import AssociazioneStudenteStanza, Ticket, StatoTicket
+
+        servizi_default = ["WiFi", "Aria Condizionata", "Lavatrice", "Riscaldamento", "Ascensore", "Posto Auto"]
+        
+        db.create_all()
 
         from app.GestioneAnnunci.models import Servizio
         servizi_default = ["WiFi", "Aria Condizionata", "Lavatrice", "Riscaldamento", "Ascensore", "Posto Auto"]
@@ -60,6 +66,5 @@ def create_app():
                 db.session.add(nuovo_servizio)
             db.session.commit()
 
-        db.create_all()
 
     return app

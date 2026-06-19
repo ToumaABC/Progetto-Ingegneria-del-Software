@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>I miei Ticket</h2>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if tickets %}
+    <div class="list-group">
+      {% for ticket in tickets %}
+        <div class="list-group-item mb-2">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="mb-1">{{ ticket.titolo }}</h5>
+              <p class="mb-1 text-muted">{{ ticket.descrizione }}</p>
+              <small class="text-muted">
+                Aperto il {{ ticket.data_apertura.strftime('%d/%m/%Y') }}
+                &mdash; Stanza: <strong>{{ ticket.associazione.annuncio.indirizzo }}</strong>
+              </small>
+            </div>
+            <div class="text-end">
+              {% if ticket.stato.value == 'aperto' %}
+                <span class="badge bg-danger mb-2 d-block">Aperto</span>
+              {% elif ticket.stato.value == 'in_lavorazione' %}
+                <span class="badge bg-warning text-dark mb-2 d-block">In lavorazione</span>
+              {% else %}
+                <span class="badge bg-success mb-2 d-block">Chiuso</span>
+              {% endif %}
+
+              <a href="{{ url_for('gestione_stanza.modifica_ticket', ticket_id=ticket.id) }}"
+                 class="btn btn-sm btn-outline-primary me-1">Modifica</a>
+
+              <form action="{{ url_for('gestione_stanza.elimina_ticket', ticket_id=ticket.id) }}"
+                    method="POST" class="d-inline"
+                    onsubmit="return confirm('Vuoi eliminare questo ticket?')">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">Non hai ancora aperto nessun ticket.</p>
+  {% endif %}
+
+  <!-- Bottone nuovo ticket: mostra gli annunci a cui lo studente è associato -->
+  {% if annunci_associati %}
+    <div class="mt-4">
+      <h5>Apri un nuovo ticket per:</h5>
+      {% for annuncio in annunci_associati %}
+        <a href="{{ url_for('gestione_stanza.nuovo_ticket', annuncio_id=annuncio.id) }}"
+           class="btn btn-primary me-2 mb-2">
+          {{ annuncio.indirizzo }}
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

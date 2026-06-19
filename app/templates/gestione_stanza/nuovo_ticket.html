@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4" style="max-width: 600px;">
+  <h2 class="mb-4">Apri un nuovo Ticket</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="POST">
+    <div class="mb-3">
+      <label for="titolo" class="form-label">Titolo</label>
+      <input type="text" class="form-control" id="titolo" name="titolo"
+             placeholder="Es. Perdita d'acqua in bagno" required>
+    </div>
+    <div class="mb-3">
+      <label for="descrizione" class="form-label">Descrizione</label>
+      <textarea class="form-control" id="descrizione" name="descrizione"
+                rows="4" placeholder="Descrivi il problema nel dettaglio..." required></textarea>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Invia ticket</button>
+      <a href="{{ url_for('gestione_stanza.visualizza_ticket') }}" class="btn btn-outline-secondary">Annulla</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
