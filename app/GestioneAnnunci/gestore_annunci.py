@@ -87,8 +87,6 @@ class GestoreAnnunci:
 
     @staticmethod
     def eliminaAnnuncio(annuncio):
-        """Rimuove permanentemente un annuncio dal database (RF-10)."""
-        # Grazie alla relazione cascade nel model, elimina anche le foto associate
         for foto in annuncio.foto:
             GestoreFoto.elimina_file_fisico(foto.percorso_file)
         db.session.delete(annuncio)

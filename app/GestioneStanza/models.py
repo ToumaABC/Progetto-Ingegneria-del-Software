@@ -36,3 +36,20 @@ class Ticket(db.Model):
 
     # Relazioni
     associazione = db.relationship('AssociazioneStudenteStanza', backref=db.backref('tickets', lazy=True, cascade="all, delete-orphan"))
+    foto = db.relationship('FotoTicket', backref='ticket', lazy=True, cascade="all, delete-orphan")
+
+
+class Recensione(db.Model):
+    __tablename__ = 'recensione'
+
+    id = db.Column(db.Integer, primary_key=True)
+    titolo = db.Column(db.String(100), nullable=False)
+    descrizione = db.Column(db.String(1000), nullable=False)
+    valutazione = db.Column(db.Integer, nullable=False)  # 1-5
+    data_pubblicazione = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    associazione_id = db.Column(db.Integer, db.ForeignKey('associazione_studente_stanza.id'), nullable=False)
+
+
+    #uselist false per indicare che ogni associazione può avere un unica recensione (sostituire con controllo)
+    associazione = db.relationship('AssociazioneStudenteStanza',backref=db.backref('recensione', uselist=False, cascade="all, delete-orphan"))

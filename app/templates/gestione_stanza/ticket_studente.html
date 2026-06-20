@@ -6,12 +6,6 @@
     <h2>I miei Ticket</h2>
   </div>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endwith %}
-
   {% if tickets %}
     <div class="list-group">
       {% for ticket in tickets %}
@@ -40,7 +34,9 @@
               <form action="{{ url_for('gestione_stanza.elimina_ticket', ticket_id=ticket.id) }}"
                     method="POST" class="d-inline"
                     onsubmit="return confirm('Vuoi eliminare questo ticket?')">
-                <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+                {% if ticket.stato.value == 'aperto' %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+               {% endif %}
               </form>
             </div>
           </div>

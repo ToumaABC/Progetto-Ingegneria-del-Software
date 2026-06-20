@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.GestioneAnnunci.gestore_annunci import GestoreAnnunci
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio
+from app.GestioneStanza.models import AssociazioneStudenteStanza
 from app.GestioneAnnunci import gestione_annunci_bp
 from app.GestioneStanza.gestore_stanza import GestoreStanza
 from app.GestioneUtente.gestore_utente import GestoreUtente
@@ -128,18 +129,37 @@ def index():
 @gestione_annunci_bp.route('/annuncio/<int:id>', methods=['GET'])
 @login_required
 def visualizza_annuncio(id):
-    """
-    Caso d'uso: VisualizzaAnnuncioStanza (ID: 10).
-    Orchestra le chiamate ai metodi inclusi.
-    """
-    # 1. Recupera l'annuncio
+
     annuncio = AnnuncioStanza.query.get_or_404(id)
-    
     locatore = GestoreUtente.visualizzaProfilo(annuncio.locatore_id)
-    
-    # 3. INCLUDE: VisualizzaInquilini (della stanza specifica)
-    # Questa funzione ci restituisce la lista delle associazioni
     inquilini_associati = GestoreStanza.visualizzaInquilini(id)
-    
-    # Passiamo i dati elaborati dalle funzioni alla View
-    return render_template('gestione_annunci/visualizza_annuncio.html', annuncio=annuncio, locatore=locatore, inquilini_associati=inquilini_associati)
+    recensioni = GestoreStanza.visualizzaRecensioni(id)
+    media_voto = GestoreStanza.calcolaValutazioneMedia(id)
+
+    # Controlla se lo studente loggato è associato e non ha già recensito
+    puo_recensire = False
+    ha_gia_recensito = False
+    annuncio_id_per_ticket = None
+
+    if current_user.is_authenticated and current_user.ruolo == 'studente':
+        associazione = AssociazioneStudenteStanza.query.filter_by(
+            annuncio_id=id,
+            studente_id=current_user.id,
+            attiva=True
+        ).first()
+        if associazione:
+            annuncio_id_per_ticket = id
+            ha_gia_recensito = associazione.recensione is not None
+            puo_recensire = not ha_gia_recensito
+
+    return render_template(
+        'gestione_annunci/visualizza_annuncio.html',
+        annuncio=annuncio,
+        locatore=locatore,
+        inquilini_associati=inquilini_associati,
+        recensioni=recensioni,
+        media_voto=media_voto,
+        puo_recensire=puo_recensire,
+        ha_gia_recensito=ha_gia_recensito,
+        annuncio_id_per_ticket=annuncio_id_per_ticket
+    )

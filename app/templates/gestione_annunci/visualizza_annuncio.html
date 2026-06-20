@@ -117,4 +117,83 @@
         </div>
     </div>
 </div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <hr>
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <h4 class="mb-0">Recensioni</h4>
+            {% if media_voto %}
+                <span class="text-warning fs-5">
+                    {% for i in range(1, 6) %}
+                        {% if i <= media_voto %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                </span>
+                <span class="text-muted small">{{ media_voto }}/5 ({{ recensioni|length }})</span>
+            {% endif %}
+        </div>
+
+        {% if puo_recensire %}
+            <a href="{{ url_for('gestione_stanza.nuova_recensione', annuncio_id=annuncio.id) }}"
+                class="btn btn-outline-primary btn-sm mb-4">
+                <i class="bi bi-star me-1"></i>Lascia una recensione
+            </a>
+        {% elif ha_gia_recensito %}
+            <p class="text-muted small mb-4">
+                <i class="bi bi-info-circle me-1"></i>Hai già lasciato una recensione per questo alloggio.
+            </p>
+        {% endif %}
+
+        {% if annuncio_id_per_ticket %}
+            <a href="{{ url_for('gestione_stanza.nuovo_ticket', annuncio_id=annuncio_id_per_ticket) }}"
+                class="btn btn-outline-warning btn-sm mb-4 ms-2">
+                <i class="bi bi-ticket-perforated me-1"></i>Apri un ticket
+            </a>
+        {% endif %}
+
+        {% if recensioni %}
+            <div class="d-flex flex-column gap-3">
+            {% for r in recensioni %}
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-title mb-1">{{ r.titolo }}</h6>
+                                <span class="text-warning">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= r.valutazione %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <small class="text-muted">
+                                {{ r.associazione.studente.nome }} {{ r.associazione.studente.cognome }}
+                                &mdash; {{ r.data_pubblicazione.strftime('%d/%m/%Y') }}
+                            </small>
+                        </div>
+                        <p class="card-text text-muted mt-2 mb-1">{{ r.descrizione }}</p>
+
+                        {% if current_user.is_authenticated and current_user.ruolo == 'studente'
+                            and r.associazione.studente_id == current_user.id %}
+                            <div class="d-flex gap-2 mt-2">
+                                <a href="{{ url_for('gestione_stanza.modifica_recensione', recensione_id=r.id) }}"
+                                    class="btn btn-sm btn-outline-primary">Modifica</a>
+                                <form action="{{ url_for('gestione_stanza.elimina_recensione', recensione_id=r.id) }}"
+                                        method="POST" class="d-inline"
+                                        onsubmit="return confirm('Eliminare questa recensione?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">
+                <i class="bi bi-chat-left-text me-1"></i>Nessuna recensione ancora.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
 {% endblock %}

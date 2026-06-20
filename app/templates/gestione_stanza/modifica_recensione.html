@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4" style="max-width: 600px;">
+  <h2 class="mb-4">Modifica Recensione</h2>
+
+  <form method="POST">
+    <div class="mb-3">
+      <label for="titolo" class="form-label">Titolo</label>
+      <input type="text" class="form-control" id="titolo" name="titolo"
+             value="{{ recensione.titolo }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="descrizione" class="form-label">Descrizione</label>
+      <textarea class="form-control" id="descrizione" name="descrizione"
+                rows="4" required>{{ recensione.descrizione }}</textarea>
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">Valutazione</label>
+      <div class="d-flex gap-2">
+        {% for i in range(1, 6) %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="valutazione"
+                   id="val{{ i }}" value="{{ i }}"
+                   {{ 'checked' if recensione.valutazione == i }} required>
+            <label class="form-check-label" for="val{{ i }}">
+              {{ '★' * i }}{{ '☆' * (5 - i) }}
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Salva modifiche</button>
+      <a href="{{ url_for('gestione_annunci.visualizza_annuncio', id=recensione.associazione.annuncio_id) }}"
+         class="btn btn-outline-secondary">Annulla</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

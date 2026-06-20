@@ -47,12 +47,15 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return Utente.query.get(int(user_id))
+    
+    login_manager.login_message = "Effettua il login per accedere a questa pagina."
+    login_manager.login_message_category = "warning"
 
     with app.app_context():
         from app.GestioneUtente.models import Utente, Studente, Locatore
         from app.GestioneAnnunci.models import AnnuncioStanza, AnnuncioSalvato, Servizio
-        from app.GestioneStanza.models import AssociazioneStudenteStanza, Ticket, StatoTicket
-
+        from app.GestioneStanza.models import AssociazioneStudenteStanza, Ticket, StatoTicket, Recensione
+        from app.GestioneFoto.models import FotoAnnuncio,FotoTicket, Foto
         servizi_default = ["WiFi", "Aria Condizionata", "Lavatrice", "Riscaldamento", "Ascensore", "Posto Auto"]
         
         db.create_all()

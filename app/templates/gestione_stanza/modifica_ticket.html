@@ -3,14 +3,7 @@
 
 <div class="container mt-4" style="max-width: 600px;">
   <h2 class="mb-4">Modifica Ticket</h2>
-
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endwith %}
-
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data">
     <div class="mb-3">
       <label for="titolo" class="form-label">Titolo</label>
       <input type="text" class="form-control" id="titolo" name="titolo"
@@ -21,6 +14,32 @@
       <textarea class="form-control" id="descrizione" name="descrizione"
                 rows="4" required>{{ ticket.descrizione }}</textarea>
     </div>
+
+    
+    {% if ticket.foto %}
+          <div class="row g-2 bg-light p-3 rounded border">
+              {% for f in ticket.foto %}
+              <div class="col-4 col-md-3 text-center">
+                  <img src="{{ url_for('static', filename=f.percorso_file) }}" class="img-thumbnail mb-2" style="height: 100px; width: 100%; object-fit: cover;">
+                  <div class="form-check d-flex justify-content-center align-items-center">
+                      <input class="form-check-input border-danger" type="checkbox" name="foto_da_eliminare" value="{{ f.id_foto }}" id="elimina_foto_{{ f.id_foto }}">
+                      <label class="form-check-label text-danger ms-2" style="font-size: 0.9em;" for="elimina_foto_{{ f.id_foto }}">
+                          Rimuovi
+                      </label>
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+      {% else %}
+          <div class="alert alert-secondary text-center py-2">Nessuna foto associata a questo annuncio.</div>
+      {% endif %}
+  </div>
+
+    <div class="mb-3">
+      <label for="foto" class="form-label">Aggiungi nuove foto</label>
+      <input type="file" class="form-control" id="foto_nuove" name="foto_nuove" multiple accept="image/*">
+    </div>
+
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-primary">Salva modifiche</button>
       <a href="{{ url_for('gestione_stanza.visualizza_ticket') }}" class="btn btn-outline-secondary">Annulla</a>
