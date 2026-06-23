@@ -12,8 +12,7 @@ class GestoreUtente:
     
     @staticmethod
     def cercaStudentePerEmail(email):
-        """Cerca un utente tramite email."""
-        utente = Utente.query.filter_by(email=email).first()
+        utente = Utente.cercaUtentePerEmail(email)
         if utente and utente.ruolo == 'studente':
             return utente
         return None
@@ -22,31 +21,36 @@ class GestoreUtente:
     def validaPassword(password):
         if len(password) < 8:
             return False
-        if not re.search(r"\d", password):#verifico la presenza di un carettere maiuscolo
+        if not re.search(r"\d", password):#verifico la presenza di una cifra numerica
             return False
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>_]", password): #verfico la presenza di un carattere speciale
             return False
         return True
 
     @staticmethod
-    def validaCredenziali(email, password):
-        """Verifica email e password per il login."""
-        utente = Utente.query.filter_by(email=email).first()
+    def login(email, password):
+        utente = Utente.cercaUtentePerEmail(email)
 
-        if utente and check_password_hash(utente.password, password):
-            return utente
-        return None
+        if not utente:
+            raise ValueError("Credenziali errate.")
+        
+        if not check_password_hash(utente.password, password):
+            raise ValueError("Credenziali errate.")
+
+        if not utente.verificato:
+            raise ValueError("Il tuo account è in attesa di verifica. Controlla la tua email.") 
+
+        return utente
 
     @staticmethod
     def registrazioneUtente(dati_form):
 
-        """Metodo principale per la registrazione (Sequence Diagram 4.2.2)."""
         email = dati_form.get('email')
         password = dati_form.get('password')
         ruolo = dati_form.get('ruolo')
 
         # Controllo unicità email
-        if Utente.query.filter_by(email=email).first():
+        if Utente.cercaUtentePerEmail(email):
             raise ValueError("L'email inserita è già in uso.")
 
         # Controllo validità password
@@ -89,35 +93,29 @@ class GestoreUtente:
     
     @staticmethod
     def inviaEmailVerifica(email):
-        """Metodo previsto dal diagramma delle classi: + inviaEmail(String): void"""
         token = GestoreUtente.generaTokenVerifica(email)
         link_verifica = url_for('gestione_utente.verify_email', token=token, _external=True)
         
         msg = Message(
-            "Verifica il tuo account - UniAlloggi",
+            "Verifica il tuo account",
             recipients=[email]
         )
-        msg.body = f"Grazie per esserti registrato su UniAlloggi!\n\nPer attivare il tuo account, clicca sul seguente link di conferma:\n{link_verifica}\n\nIl link rimarrà attivo per un'ora."
+        msg.body = f"Grazie per esserti registrato!\n\nPer attivare il tuo account, clicca sul seguente link di conferma:\n{link_verifica}\n\nIl link rimarrà attivo per un'ora."
         
-        try:
-            mail.send(msg)
-        except Exception as e:
-            # Fallback di debug se i dati SMTP nel file .env non sono ancora configurati/corretti
-            print(f"\n[DEBUG] Errore SMTP nell'invio reale: {e}")
-            print(f"[DEBUG] Generazione link di verifica simulato:\n--> {link_verifica}\n")
-
-
+        mail.send(msg)
+        
     @staticmethod
     def generaTokenVerifica(email):
-        """Genera un token crittografico temporizzato basato sull'email."""
+        #Inzializzo il serializer con la mia chiave privata
         serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        #Ritorno il token firmato contente la mia email
         return serializer.dumps(email, salt="email-verification-salt")
 
     @staticmethod
     def confermaTokenVerifica(token, expiration=3600):
-        """Valida il token. Scade automaticamente dopo 1 ora (3600 secondi)."""
         serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
         try:
+            #prelevo il token verificando che non sia scaduto
             email = serializer.loads(token, salt="email-verification-salt", max_age=expiration)
             return email
         except (SignatureExpired, BadTimeSignature):
@@ -125,10 +123,7 @@ class GestoreUtente:
         
 
     @staticmethod
-    def modificaProfilo(utente, dati_form):
-        """Aggiorna i campi anagrafici, la password e gestisce dinamicamente i campi polimorfici."""
-        
-        # Gestione Modifica Password
+    def modificaProfilo(utente, dati_form):        
         vecchia_password = dati_form.get('vecchia_password')
         nuova_password = dati_form.get('nuova_password')
         
@@ -159,63 +154,53 @@ class GestoreUtente:
 
     @staticmethod
     def eliminaProfilo(utente):
-        """Rimuove permanentemente l'account dal database SQLite."""
         db.session.delete(utente)
         db.session.commit()
 
 
     @staticmethod
     def generaNuovaPassword():
-        """Genera una password casuale di 10 caratteri che rispetta i vincoli RNF-3."""
         caratteri = string.ascii_letters
         numeri = string.digits
         speciali = "!@#$%^&*(),.?\":{}|<>"
-
-        # Garantiamo almeno un numero e un carattere speciale (RNF-3)
+        # Genero almeno un numero e un carattere speciale 
         password_list = [
             random.choice(numeri),
             random.choice(speciali)
         ]
         
-        # Riempi i restanti 8 caratteri in modo casuale
+        # Riempo i restanti caratteri in modo casuale
         tutti_i_caratteri = caratteri + numeri + speciali
         password_list += [random.choice(tutti_i_caratteri) for _ in range(8)]
         
-        # Mischia i caratteri per evitare schemi prevedibili
+        # Mischio i caratteri per evitare schemi prevedibili
         random.shuffle(password_list)
         return "".join(password_list)
     
     @staticmethod
     def recuperaPassword(email):
-        """
-        Caso d'Uso 6: Recupero Password.
-        Verifica l'esistenza dell'email, genera una nuova password, la aggiorna e la invia.
-        """
-        utente = Utente.query.filter_by(email=email).first()
+        utente = Utente.cercaUtentePerEmail(email)
         if not utente:
             raise ValueError("Nessun account associato a questo indirizzo email.")
         
-        # 4. Il sistema genera la nuova password
+        #Genero la nuova password
         nuova_password = GestoreUtente.generaNuovaPassword()
         
-        # Aggiorna il database con l'hash della nuova password
         utente.password = generate_password_hash(nuova_password)
-        db.session.commit()
-        
-        # 5. Il sistema invia la nuova password all'Utente tramite email
+        #Invio l'email
         msg = Message("Recupero Password - UniAlloggi", recipients=[email])
         msg.body = f"Hai richiesto il recupero della password per il tuo account UniAlloggi.\n\nLa tua nuova password generata dal sistema è: {nuova_password}\n\nPuoi utilizzare questa password per effettuare il login. Ti consigliamo di modificarla successivamente dal tuo profilo."
-        
         try:
             mail.send(msg)
+            #Aggiorno la password cifrata nel db solo dopo l'invio della email
+            db.session.commit()
         except Exception:
-            # Fallback per debug se il server SMTP non è ancora attivo
-            print(f"\n[DEBUG] Nuova password generata per {email}: {nuova_password}\n")
+            raise ValueError("Impossibile inviare l'email di recupero password.")
 
     @staticmethod
     def visualizzaProfilo(utente_id):
-        """Caso d'uso: VisualizzaProfilo (ID: 4)"""
         utente = Utente.query.get(utente_id)
         if not utente:
             raise ValueError("Utente non trovato")
         return utente
+    

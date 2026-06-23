@@ -11,23 +11,17 @@ from app.GestioneUtente.models import Utente
 @gestione_utente_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('gestione_utente.profilo'))
-    
+        return redirect(url_for('gestione_annunci.index'))
 
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        
-        utente = GestoreUtente.validaCredenziali(email, password)
-        if utente:
-            if not utente.verificato:
-                flash('Accesso negato: il tuo account è in attesa di verifica. Controlla la tua email.', 'warning')
-            
-            else:
-                login_user(utente)
-                return redirect(url_for('gestione_annunci.index'))
-        else:
-            flash('Credenziali errate. Riprova.', 'danger')
+        try:
+            utente = GestoreUtente.login(email, password)
+            login_user(utente)
+            return redirect(url_for('gestione_annunci.index'))
+        except ValueError as e:
+            flash(str(e), 'danger')
             
     return render_template('gestione_utente/login.html')
 
@@ -35,7 +29,7 @@ def login():
 @gestione_utente_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('gestione_utente.profilo'))
+        return redirect(url_for('gestione_annunci.index'))
     if request.method == 'POST':
         try:
             GestoreUtente.registrazioneUtente(request.form)
@@ -58,10 +52,9 @@ def logout():
 
 @gestione_utente_bp.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
-    """Transizione di stato del diagramma AccountUtente da 'In attesa di verifica' a 'Verificato'"""
     email = GestoreUtente.confermaTokenVerifica(token)
     if email:
-        utente = Utente.query.filter_by(email=email).first()
+        utente = Utente.cercaUtentePerEmail(email)
         if utente:
             if utente.verificato:
                 flash('Questo account risulta già verificato.', 'info')
@@ -96,8 +89,8 @@ def modifica_profilo():
 def elimina_account():
 
     utente = Utente.query.get(current_user.id)
-    logout_user() # Rimuove i cookie di sessione dal browser
     GestoreUtente.eliminaProfilo(utente)
+    logout_user()
     
     flash('Il tuo account è stato rimosso definitivamente dal sistema.', 'info')
     return redirect(url_for('gestione_utente.register'))
@@ -129,7 +122,6 @@ def forgot_password():
 def profilo(id):
 
     target_id = id if id is not None else current_user.id
-    
     
     try:
         utente_da_visualizzare = GestoreUtente.visualizzaProfilo(target_id)

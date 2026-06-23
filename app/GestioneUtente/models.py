@@ -20,6 +20,10 @@ class Utente(UserMixin, db.Model):
         'polymorphic_identity': 'utente'
     }
 
+    @classmethod
+    def cercaUtentePerEmail(cls, email_inserita):
+        return cls.query.filter_by(email=email_inserita).first()
+
 class Studente(Utente):
     __tablename__ = 'studente'
     id = db.Column(db.Integer, db.ForeignKey('utente.id'), primary_key=True)
