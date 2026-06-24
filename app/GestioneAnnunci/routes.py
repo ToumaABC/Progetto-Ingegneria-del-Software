@@ -110,3 +110,59 @@ def index():
     annunci = AnnuncioStanza.query.filter_by(visibile=True).all()
 
     return render_template('index.html', annunci=annunci)
+
+
+@gestione_annunci_bp.route('/salva_annuncio/<int:id>', methods=['POST'])
+@login_required
+def salva_annuncio(id):
+    """Rotta per salvare un annuncio nei preferiti."""
+    # Sicurezza: Solo gli studenti possono salvare annunci
+    if current_user.ruolo != 'studente':
+        flash('Solo gli studenti possono salvare gli annunci nei preferiti.', 'danger')
+        return redirect(request.referrer or url_for('gestione_annunci.index'))
+
+    # Verifica che l'annuncio esista e sia visibile
+    annuncio = AnnuncioStanza.query.get_or_404(id)
+    
+    # Chiamata al Gestore
+    successo = GestoreAnnunci.salvaAnnuncio(studente_id=current_user.id, annuncio_id=annuncio.id)
+    
+    if successo:
+        flash('Annuncio salvato nei preferiti!', 'success')
+    else:
+        flash('Hai già salvato questo annuncio.', 'warning')
+        
+    # Torna alla pagina da cui l'utente ha cliccato (o alla home se non disponibile)
+    return redirect(request.referrer or url_for('gestione_annunci.index'))
+
+
+@gestione_annunci_bp.route('/rimuovi_salvato/<int:id>', methods=['POST'])
+@login_required
+def rimuovi_salvato(id):
+    """Rotta per rimuovere un annuncio dalla lista dei preferiti."""
+    if current_user.ruolo != 'studente':
+        return redirect(url_for('gestione_annunci.index'))
+
+    successo = GestoreAnnunci.eliminaAnnuncioSalvato(studente_id=current_user.id, annuncio_id=id)
+    
+    if successo:
+        flash('Annuncio rimosso dai preferiti.', 'success')
+    else:
+        flash('Errore: l\'annuncio non era nei tuoi preferiti.', 'danger')
+        
+    return redirect(request.referrer or url_for('gestione_annunci.annunci_salvati'))
+
+
+@gestione_annunci_bp.route('/annunci_salvati', methods=['GET'])
+@login_required
+def annunci_salvati():
+    """Rotta per visualizzare la lista degli annunci salvati dallo studente."""
+    if current_user.ruolo != 'studente':
+        flash('Questa sezione è riservata agli studenti.', 'danger')
+        return redirect(url_for('gestione_annunci.index'))
+    
+    # Recupera gli annunci tramite il Gestore
+    annunci_preferiti = GestoreAnnunci.getAnnunciSalvati(studente_id=current_user.id)
+    
+    # Renderizza il template passando la lista
+    return render_template('gestione_annunci/annunci_salvati.html', annunci=annunci_preferiti)

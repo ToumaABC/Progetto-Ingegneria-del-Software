@@ -2,7 +2,7 @@ import os
 from flask import current_app
 from werkzeug.utils import secure_filename
 from app import db
-from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, FotoAnnuncio
+from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, FotoAnnuncio, AnnuncioSalvato
 
 class GestoreAnnunci:
 
@@ -19,7 +19,7 @@ class GestoreAnnunci:
         indirizzo = dati_form.get('indirizzo')
         descrizione = dati_form.get('descrizione')
         costo = dati_form.get('costo')
-
+        #Se almeno uno dei seguenti dati è vuota, allora mi restituisce l'errore
         if not titolo or not indirizzo or not descrizione or not costo:
             raise ValueError("Compila tutti i campi obbligatori.")
 
@@ -111,7 +111,7 @@ class GestoreAnnunci:
 
     @staticmethod
     def eliminaAnnuncio(annuncio):
-        """Rimuove permanentemente un annuncio dal database (RF-10)."""
+        """Rimuove permanentemente un annuncio dal database (RF-11)."""
         # Grazie alla relazione cascade nel model, elimina anche le foto associate
         db.session.delete(annuncio)
         db.session.commit()
@@ -122,3 +122,57 @@ class GestoreAnnunci:
         annuncio.visibile = not annuncio.visibile
         db.session.commit()
         return annuncio.visibile
+    
+
+    @staticmethod
+    def salvaAnnuncio(studente_id, annuncio_id):
+        """
+        RF-15: Permette a uno studente di salvare un annuncio nei preferiti.
+        Ritorna True se salvato con successo, False se era già salvato.
+        """
+        # Verifica se l'annuncio è già stato salvato da questo studente
+        salvataggio_esistente = AnnuncioSalvato.query.filter_by(
+            studente_id=studente_id, 
+            annuncio_id=annuncio_id
+        ).first()
+
+        if salvataggio_esistente:
+            # L'annuncio è già tra i preferiti, non facciamo nulla
+            return False
+
+        # Se non esiste, crea un nuovo record nella tabella ponte
+        nuovo_salvataggio = AnnuncioSalvato(
+            studente_id=studente_id,
+            annuncio_id=annuncio_id
+        )
+        db.session.add(nuovo_salvataggio)
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def eliminaAnnuncioSalvato(studente_id, annuncio_id):
+        """
+        RF-16: Rimuove un annuncio dalla lista dei preferiti di uno studente.
+        """
+        salvataggio = AnnuncioSalvato.query.filter_by(
+            studente_id=studente_id, 
+            annuncio_id=annuncio_id
+        ).first()
+
+        if salvataggio:
+            db.session.delete(salvataggio)
+            db.session.commit()
+            return True
+        return False
+
+    @staticmethod
+    def getAnnunciSalvati(studente_id):
+        """
+        RF-17: Recupera tutti gli annunci che uno specifico studente ha salvato.
+        """
+        # Cerca tutti i record nella tabella ponte per questo studente
+        salvataggi = AnnuncioSalvato.query.filter_by(studente_id=studente_id).all()
+        
+        # Estrae l'oggetto 'annuncio' da ogni record di salvataggio
+        annunci = [salvataggio.annuncio for salvataggio in salvataggi]
+        return annunci
