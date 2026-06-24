@@ -1,164 +1,72 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Gestione Annunci</h2>
-        <a href="{{ url_for('gestione_annunci.aggiungi_annuncio') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Aggiungi Nuovo Annuncio
-        </a>
-    </div>
+<div class="container mt-5" style="max-width: 800px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Modificare il tuo annuncio</h3>
+        </div>
+        <div class="card-body p-4">
+            <form action="{{ url_for('gestione_annunci.modifica_annuncio', id=annuncio.id) }}" method="POST" enctype="multipart/form-data">
+                
+                <div class="mb-3">
+                    <label for="titolo" class="form-label fw-bold">Titolo Annuncio</label>
+                    <input type="text" class="form-control" id="titolo" name="titolo" value="{{ annuncio.titolo }}" required>
+                </div>
 
-    {% if annunci %}
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Anteprima</th>
-                    <th scope="col">Titolo</th>
-                    <th scope="col">Indirizzo</th>
-                    <th scope="col">Costo</th>
-                    <th scope="col">Stato</th>
-                    <th scope="col" class="text-center">Azioni</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for annuncio in annunci %}
-                <tr>
-                    <td>
-                        {% if annuncio.foto %}
-                            <img src="{{ url_for('static', filename=annuncio.foto[0].percorso_file) }}" alt="Anteprima" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
-                        {% else %}
-                            <div class="bg-secondary text-white text-center rounded text-xs" style="width: 80px; height: 60px; line-height: 60px; font-size: 11px;">No Foto</div>
-                        {% endif %}
-                    </td>
-                    <td><strong>{{ annuncio.titolo }}</strong></td>
-                    <td>{{ annuncio.indirizzo }}</td>
-                    <td>&euro; {{ "%.2f"|format(annuncio.costo) }}/mese</td>
-                    <td>
-                        {% if annuncio.visibile %}
-                            <span class="badge bg-success">Disponibile / Visibile</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark">Nascosto</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        <div class="d-inline-flex gap-2">
-                            <form action="{{ url_for('gestione_annunci.visibilita_annuncio', id=annuncio.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-sm {% if annuncio.visibile %}btn-outline-secondary{% else %}btn-secondary{% endif %}" title="Cambia visibilità">
-                                    {% if annuncio.visibile %}Nascondi{% else %}Mostra{% endif %}
-                                </button>
-                            </form>
+                <div class="mb-3">
+                    <label for="indirizzo" class="form-label fw-bold">Indirizzo</label>
+                    <input type="text" class="form-control" id="indirizzo" name="indirizzo" value="{{ annuncio.indirizzo }}" required>
+                </div>
 
-                            <a href="{{ url_for('gestione_annunci.modifica_annuncio', id=annuncio.id) }}" class="btn btn-sm btn-primary">Modifica</a>
+                <div class="mb-3">
+                    <label for="descrizione" class="form-label fw-bold">Descrizione</label>
+                    <textarea class="form-control" id="descrizione" name="descrizione" rows="4" required>{{ annuncio.descrizione }}</textarea>
+                </div>
 
-                            <form action="{{ url_for('gestione_annunci.elimina_annuncio', id=annuncio.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Sei sicuro di voler eliminare permanentemente questo annuncio?');">
-                                <button type="submit" class="btn btn-sm btn-danger">Elimina</button>
-                            </form>
-                            <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#associaModal{{ annuncio.id }}">
-                                Associa
-                            </button>
+                <div class="mb-3">
+                    <label for="costo" class="form-label fw-bold">Costo</label>
+                    <div class="input-group">
+                        <span class="input-group-text">&euro;</span>
+                        <input type="number" step="0.01" class="form-control" id="costo" name="costo" value="{{ annuncio.costo }}" min="0" required>
+                    </div>
+                </div>
 
-                            <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#inquiliniModal{{ annuncio.id }}">
-                                Inquilini
-                            </button>
-                            <div class="modal fade" id="associaModal{{ annuncio.id }}" tabindex="-1" aria-labelledby="associaModalLabel{{ annuncio.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content p-4 border-0 shadow" style="background-color: #f4f4f4; border-radius: 15px;">
-                                    
-                                    <!-- Pulsante di chiusura X -->
-                                    <div class="text-end">
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    
-                                    <div class="modal-body text-center">
-                                        <h1 class="modal-title fw-bold mb-4" id="associaModalLabel{{ annuncio.id }}" style="letter-spacing: -1px;">Associazione inquilino</h1>
-                                        
-                                        <form action="{{ url_for('gestione_stanza.associa_studente', id=annuncio.id) }}" method="POST" class="d-flex flex-column align-items-center">
-                                        
-                                        <!-- Box Input in stile Mockup -->
-                                        <div class="bg-white p-3 rounded shadow-sm w-100" style="max-width: 350px;">
-                                            <div class="mb-3 text-start">
-                                                <label class="form-label text-muted small fw-bold mb-1">Email</label>
-                                                <input type="email" name="email_studente" class="form-control text-muted" placeholder="example@gmail.com" required style="border-radius: 8px;">
-                                            </div>
-                                            <button type="submit" class="btn btn-dark w-100 fw-bold" style="border-radius: 8px; padding: 10px;">Cerca</button>
-                                        </div>
-                                        
-                                        </form>
-                                    </div>
-                                    </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold d-block">Foto attuali:</label>
+                    <div class="form-text text-muted mb-2">Seleziona la spunta rossa sotto le foto che desideri eliminare.</div>
+                    
+                    {% if annuncio.foto %}
+                        <div class="row g-2 bg-light p-3 rounded border">
+                            {% for f in annuncio.foto %}
+                            <div class="col-4 col-md-3 text-center">
+                                <img src="{{ url_for('static', filename=f.percorso_file) }}" class="img-thumbnail mb-2" style="height: 100px; width: 100%; object-fit: cover;">
+                                <div class="form-check d-flex justify-content-center align-items-center">
+                                    <input class="form-check-input border-danger" type="checkbox" name="foto_da_eliminare" value="{{ f.id_foto }}" id="elimina_foto_{{ f.id_foto }}">
+                                    <label class="form-check-label text-danger ms-2" style="font-size: 0.9em;" for="elimina_foto_{{ f.id_foto }}">
+                                        Rimuovi
+                                    </label>
                                 </div>
                             </div>
-
-
-                            <div class="modal fade" id="inquiliniModal{{ annuncio.id }}" tabindex="-1" aria-labelledby="inquiliniModalLabel{{ annuncio.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content border-0 shadow">
-                                    
-                                    <div class="modal-header bg-dark text-white">
-                                        <h5 class="modal-title fw-bold" id="inquiliniModalLabel{{ annuncio.id }}"><i class="bi bi-people-fill me-2"></i>Inquilini della Stanza</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    
-                                    <div class="modal-body p-4">
-                                        
-                                        {% if annuncio.associazioni %}
-                                            <ul class="list-group list-group-flush mb-0">
-                                            {% for assoc in annuncio.associazioni %}
-                                                {% if assoc.attiva %}
-                                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
-                                                    
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="bi bi-person-circle fs-3 text-secondary me-3"></i>
-                                                        <div>
-                                                            <div class="fw-bold">{{ assoc.studente.nome }} {{ assoc.studente.cognome }}</div>
-                                                            <div class="small text-muted">{{ assoc.studente.email }}</div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <form action="{{ url_for('gestione_stanza.annulla_associazione', annuncio_id=annuncio.id, studente_id=assoc.studente.id) }}" method="POST" class="m-0" onsubmit="return confirm('Sei sicuro di voler dissociare questo studente dall\'alloggio?');">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                            <i class="bi bi-person-x-fill me-1"></i> Rimuovi
-                                                        </button>
-                                                    </form>
-                                                    
-                                                </li>
-                                                {% endif %}
-                                            {% endfor %}
-                                            </ul>
-                                            
-                                            {% set attivi = annuncio.associazioni | selectattr("attiva", "equalto", true) | list %}
-                                            {% if not attivi %}
-                                                <div class="text-center text-muted my-3">
-                                                    <i class="bi bi-info-circle display-6 mb-2"></i>
-                                                    <p>Nessun inquilino attualmente associato.</p>
-                                                </div>
-                                            {% endif %}
-
-                                        {% else %}
-                                            <div class="text-center text-muted my-3">
-                                                <i class="bi bi-info-circle display-6 mb-2"></i>
-                                                <p>Nessun inquilino attualmente associato.</p>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
+                            {% endfor %}
                         </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% else %}
+                        <div class="alert alert-secondary text-center py-2">Nessuna foto associata a questo annuncio.</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="nuove_foto" class="form-label fw-bold">Aggiungi nuove foto</label>
+                    <input class="form-control" type="file" id="nuove_foto" name="nuove_foto" accept="image/*" multiple>
+                    <div class="form-text text-muted">Puoi aggiungere ulteriori foto. Verranno sommate a quelle già presenti.</div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end pt-3 border-top">
+                    <a href="{{ url_for('gestione_annunci.miei_annunci') }}" class="btn btn-outline-secondary">Annulla</a>
+                    <button type="submit" class="btn btn-primary px-4">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
     </div>
-    {% else %}
-    <div class="alert alert-info text-center mt-4">
-        <p class="mb-0">Non hai ancora pubblicato nessun annuncio. Clicca su "Aggiungi Nuovo Annuncio" per iniziare.</p>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
