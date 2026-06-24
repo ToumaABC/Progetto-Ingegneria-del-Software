@@ -38,7 +38,8 @@ class GestoreUtente:
             raise ValueError("Credenziali errate.")
 
         if not utente.verificato:
-            raise ValueError("Il tuo account è in attesa di verifica. Controlla la tua email.") 
+            GestoreUtente.inviaEmailVerifica(email)
+            raise ValueError("Il tuo account è in attesa di verifica. Ti abbiamo inviato una nuova email.") 
 
         return utente
 

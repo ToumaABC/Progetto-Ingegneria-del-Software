@@ -35,7 +35,13 @@
                             Ticket
                         </a>
                     </li>
-                    
+                    {% if current_user.ruolo == 'studente' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('gestione_annunci.annunci_salvati') }}">
+                            Annunci Salvati
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
 
                 <ul class="navbar-nav ms-auto">
@@ -44,19 +50,13 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarUser" role="button" data-bs-toggle="dropdown">
                                 Ciao, {{ current_user.nome }}
                             </a>
-      <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
                                 <li>
                                     <a class="dropdown-item py-2" href="{{ url_for('gestione_utente.profilo') }}">
                                     Il mio Profilo
                                     </a>
                                 </li>
-                                {% if current_user.ruolo == 'studente' %}
-                    <li>
-                        <a class="dropdown-item" href="{{ url_for('gestione_annunci.annunci_salvati') }}">
-                            Annunci Salvati
-                        </a>
-                    </li>
-                    {% endif %}
+           
                                 <li>
                                     <a class="dropdown-item py-2" href="{{ url_for('gestione_utente.modifica_profilo') }}">
                                         Modifica Profilo

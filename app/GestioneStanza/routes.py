@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.GestioneStanza import gestione_stanza_bp
 from app.GestioneStanza.gestore_stanza import GestoreStanza
 from app.GestioneAnnunci.models import AnnuncioStanza
+from app.GestioneStanza.models import AssociazioneStudenteStanza 
 from app.GestioneStanza.gestore_stanza import Ticket
 
 
@@ -87,7 +88,6 @@ def modifica_ticket(ticket_id):
         foto_da_eliminare = request.form.getlist("foto_da_eliminare")
         print(foto_da_aggiungere)
 
-
         if not titolo or not descrizione:
             flash("Titolo e descrizione sono obbligatori.", "danger")
             return render_template('gestione_stanza/modifica_ticket.html', ticket=ticket)
@@ -134,14 +134,11 @@ def aggiorna_stato_ticket(ticket_id):
 @login_required
 def visualizza_ticket():
     if current_user.ruolo == 'studente':
-        from app.GestioneStanza.models import AssociazioneStudenteStanza
         tickets = GestoreStanza.visualizzaTicketStudente(current_user.id)
-        associazioni = AssociazioneStudenteStanza.query.filter_by(
-            studente_id=current_user.id, attiva=True).all()
+        associazioni = AssociazioneStudenteStanza.query.filter_by(studente_id=current_user.id, attiva=True).all()
+        print(associazioni)
         annunci_associati = [a.annuncio for a in associazioni]
-        return render_template('gestione_stanza/ticket_studente.html',
-                               tickets=tickets,
-                               annunci_associati=annunci_associati)
+        return render_template('gestione_stanza/ticket_studente.html',tickets=tickets,annunci_associati=annunci_associati)
     else:
         annunci = AnnuncioStanza.query.filter_by(locatore_id=current_user.id).all()
         tickets_per_annuncio = {

@@ -5,7 +5,17 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>I miei Ticket</h2>
   </div>
-
+    {% if annunci_associati %}
+    <div class="mt-4">
+      <h5>Apri un nuovo ticket per:</h5>
+      {% for annuncio in annunci_associati %}
+        <a href="{{ url_for('gestione_stanza.nuovo_ticket', annuncio_id=annuncio.id) }}"
+           class="btn btn-primary me-2 mb-2">
+          {{ annuncio.indirizzo }}
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
   {% if tickets %}
     <div class="list-group">
       {% for ticket in tickets %}
@@ -76,19 +86,9 @@
       <h4 class="fw-bold text-dark mt-3">Nessun ticket aperto</h4>
       <p class="text-muted">Non hai ancora aperto nessun ticket per il locatore.</p>
       <!-- Bottone nuovo ticket: mostra gli annunci a cui lo studente è associato -->
-  {% if annunci_associati %}
-    <div class="mt-4">
-      <h5>Apri un nuovo ticket per:</h5>
-      {% for annuncio in annunci_associati %}
-        <a href="{{ url_for('gestione_stanza.nuovo_ticket', annuncio_id=annuncio.id) }}"
-           class="btn btn-primary me-2 mb-2">
-          {{ annuncio.indirizzo }}
-        </a>
-      {% endfor %}
-    </div>
-  {% endif %}
   </div>
 {% endif %}
+
 
   
 </div>

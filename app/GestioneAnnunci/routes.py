@@ -8,12 +8,9 @@ from app.GestioneStanza.gestore_stanza import GestoreStanza
 from app.GestioneUtente.gestore_utente import GestoreUtente
 
 
-
-
 @gestione_annunci_bp.route('/aggiungi_annuncio', methods=['GET', 'POST'])
 @login_required
 def aggiungi_annuncio():
-    # Sicurezza: Solo il locatore può aggiungere annunci
     if current_user.ruolo != 'locatore':
         flash('Solo i locatori possono pubblicare annunci.', 'danger')
         return redirect(url_for('gestore_utente.profilo'))
@@ -165,7 +162,6 @@ def visualizza_annuncio(id):
         annuncio_id_per_ticket=annuncio_id_per_ticket
     )
 
-#Rotte per salva annuncio
 @gestione_annunci_bp.route('/salva_annuncio/<int:id>', methods=['POST'])
 @login_required
 def salva_annuncio(id):

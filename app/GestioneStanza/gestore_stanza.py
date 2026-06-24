@@ -16,7 +16,14 @@ class GestoreStanza:
         associazione_attiva = AssociazioneStudenteStanza.query.filter_by(studente_id=studente.id, attiva=True).first()
         if associazione_attiva:
             raise ValueError("Lo studente è già associato a un'altra stanza attiva.")
-            
+        
+        associazione_disattivata = AssociazioneStudenteStanza.query.filter_by(studente_id=studente.id,annuncio_id=annuncio_id, attiva=False).first()
+        if associazione_disattivata:
+            associazione_disattivata.attiva = True
+            db.session.commit()
+            return associazione_disattivata
+        
+
         nuova_associazione = AssociazioneStudenteStanza(
             annuncio_id=annuncio_id,
             studente_id=studente.id,
@@ -31,24 +38,24 @@ class GestoreStanza:
         associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id, attiva=True).all()
         return associazioni
     
-
+    @staticmethod
     def annullaAssociazione(annuncio_id, studente_id):
         associazione = AssociazioneStudenteStanza.query.filter_by(
             annuncio_id=annuncio_id, 
-            studente_id=studente_id
+            studente_id=studente_id,
+            attiva=True
         ).first()
         
         if not associazione:
             raise ValueError("L'associazione specificata non esiste.")
-            
-        # Il caso d'uso dice: "scollega i dati nel database"
-        db.session.delete(associazione)
+        
+        associazione.attiva = False
+
         db.session.commit()
 
 
     @staticmethod
     def get_associazione_attiva(annuncio_id, studente_id):
-        """Restituisce l'associazione attiva tra studente e annuncio, o solleva ValueError."""
         associazione = AssociazioneStudenteStanza.query.filter_by(
             annuncio_id=annuncio_id,
             studente_id=studente_id,
@@ -148,7 +155,6 @@ class GestoreStanza:
 
     @staticmethod
     def aggiornaStatoTicket(ticket_id, locatore_id):
-        """Il locatore fa avanzare lo stato: APERTO → IN_LAVORAZIONE → CHIUSO."""
         ticket = Ticket.query.get_or_404(ticket_id)
 
         # Verifica che il ticket appartenga a un annuncio del locatore
@@ -231,7 +237,6 @@ class GestoreStanza:
 
     @staticmethod
     def modificaRecensione(recensione_id, studente_id, titolo, descrizione, valutazione):
-        """RF-28: Solo l'autore può modificare."""
 
         recensione = Recensione.query.get_or_404(recensione_id)
 
@@ -249,7 +254,6 @@ class GestoreStanza:
 
     @staticmethod
     def eliminaRecensione(recensione_id, studente_id):
-        """RF-29: Solo l'autore può eliminare."""
 
         recensione = Recensione.query.get_or_404(recensione_id)
 
