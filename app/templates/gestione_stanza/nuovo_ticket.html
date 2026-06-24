@@ -15,16 +15,17 @@
       <textarea class="form-control" id="descrizione" name="descrizione"
                 rows="4" placeholder="Descrivi il problema nel dettaglio..." required></textarea>
     </div>
-    <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-primary">Invia ticket</button>
-      <a href="{{ url_for('gestione_stanza.visualizza_ticket') }}" class="btn btn-outline-secondary">Annulla</a>
-    </div>
-        <div class="mb-3">
+     <div class="mb-3">
       <label for="foto" class="form-label">Foto (opzionale)</label>
       <input type="file" class="form-control" id="foto" name="foto"
              multiple accept="image/*">
       <div class="form-text">Puoi allegare più foto (jpg, png, webp).</div>
     </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Invia ticket</button>
+      <a href="{{ url_for('gestione_stanza.visualizza_ticket') }}" class="btn btn-outline-secondary">Annulla</a>
+    </div>
+       
   </form>
 </div>
 

@@ -60,6 +60,28 @@
                     <input class="form-control" type="file" id="nuove_foto" name="nuove_foto" accept="image/*" multiple>
                     <div class="form-text text-muted">Puoi aggiungere ulteriori foto. Verranno sommate a quelle già presenti.</div>
                 </div>
+                <div class="mb-4">
+                    <label class="form-label d-block fw-bold mb-2">Servizi offerti:</label>
+                    <div class="row g-3 bg-light p-3 rounded border">
+                        {% if servizi %}
+                            {% set servizi_attuali_ids = annuncio.servizi_collegati | map(attribute='servizio_id') | list %}
+                            {% for servizio in servizi %}
+                            <div class="col-6 col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="servizi" value="{{ servizio.id }}"
+                                           id="servizio_{{ servizio.id }}"
+                                           {% if servizio.id in servizi_attuali_ids %}checked{% endif %}>
+                                    <label class="form-check-label" for="servizio_{{ servizio.id }}">
+                                        {{ servizio.nome_servizio }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-muted text-center py-2">Nessun servizio censito nel sistema.</div>
+                        {% endif %}
+                    </div>
+                </div>
 
                 <div class="d-flex gap-2 justify-content-end pt-3 border-top">
                     <a href="{{ url_for('gestione_annunci.miei_annunci') }}" class="btn btn-outline-secondary">Annulla</a>

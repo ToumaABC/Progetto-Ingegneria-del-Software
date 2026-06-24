@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5 min-vh-100">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h2 class="fw-bold m-0">I tuoi Annunci Salvati</h2>
+        <!--<a href="{{ url_for('gestione_annunci.index') }}" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Torna alla ricerca
+        </a>-->
+    </div>
+
+    {% if not annunci %}
+    <div class="text-center py-5 bg-white rounded-4 border shadow-sm">
+        <i class="bi bi-bookmark-heart text-muted" style="font-size: 4rem;"></i>
+        <h4 class="fw-bold text-dark mt-3">Nessun annuncio salvato</h4>
+        <p class="text-muted">Non hai ancora aggiunto annunci ai tuoi preferiti.</p>
+        <a href="{{ url_for('gestione_annunci.index') }}" class="btn btn-primary rounded-pill px-4 mt-2">Cerca Alloggi</a>
+    </div>
+    {% else %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for annuncio in annunci %}
+            <!--<a href="{{ url_for('gestione_annunci.visualizza_annuncio', id=annuncio.id) }}">-->
+            <div class="col">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                        <form action="{{ url_for('gestione_annunci.rimuovi_salvato', id=annuncio.id) }}" method="POST" class="position-absolute top-0 end-0 p-2 z-1">
+                            <button type="submit" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Rimuovi dai preferiti">
+                                <i class="bi bi-x-lg text-danger"></i>
+                            </button>
+                        </form>
+
+                        {% if annuncio.foto %}
+                            <img src="{{ url_for('static', filename=annuncio.foto[0].percorso_file) }}" class="card-img-top" alt="Foto" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-house text-secondary" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-dark text-truncate">{{ annuncio.titolo }}</h5>
+                            <p class="card-text text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ annuncio.indirizzo }}</p>
+                            <h4 class="text-primary fw-bolder mb-3 mt-auto">€ {{ "%.2f"|format(annuncio.costo) }} <span class="fs-6 text-muted fw-normal">/mese</span></h4>
+                        </div>
+                    </div>
+                </div>    
+            <!--</a>-->
+                
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -4,33 +4,47 @@
 {% block navbar %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center min-vh-100">
-    <div class="col-md-5">
-        <div class="card bg-white p-5 rounded-4 shadow-sm border-0">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold">Log in your home page!</h2>
-                <p class="text-muted">Bentornato su UniAlloggi</p>
+<div class="d-flex justify-content-center align-items-center min-vh-100 py-5">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 800px; width: 100%;">
+        <div class="row g-0">
+
+            {# LATO SINISTRA: Form di login #}
+            <div class="col-md-7 p-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Log in your home page!</h2>
+                    <p class="text-muted">Bentornato su UniAlloggi</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('gestione_utente.login') }}">
+                    <div class="mb-3">
+                        <input type="email" name="email" class="form-control bg-light border-0" placeholder="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" name="password" class="form-control bg-light border-0" placeholder="Password" required>
+                    </div>
+                    <div class="d-flex justify-content-between mb-4 px-1">
+                        <a href="{{ url_for('gestione_utente.forgot_password') }}" class="text-decoration-none text-muted small">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 mb-3">Sign in</button>
+
+                    <div class="text-center small">
+                        <span class="text-muted">Non hai un account? </span>
+                        <a href="{{ url_for('gestione_utente.register') }}" class="text-dark fw-bold text-decoration-none">Register</a>
+                    </div>
+                </form>
             </div>
-            
-            <form method="POST" action="{{ url_for('gestione_utente.login') }}">
-                <div class="mb-3">
-                    <input type="email" name="email" class="form-control form-control-lg bg-light border-0" placeholder="Email" required>
+
+            {# LATO DESTRA: Logo esteso a tutto il quadrante #}
+            <div class="col-md-5 bg-primary d-none d-md-flex align-items-center justify-content-center text-white">
+                <div class="text-center">
+                    <i class="bi bi-house-fill" style="font-size: 5rem;"></i>
+                    <h2 class="fw-bold mt-2">UniAlloggi</h2>
                 </div>
-                <div class="mb-3">
-                    <input type="password" name="password" class="form-control form-control-lg bg-light border-0" placeholder="Password" required>
-                </div>
-                <div class="d-flex justify-content-between mb-4 px-1">
-                    <a href="{{url_for('gestione_utente.forgot_password')}}" class="text-decoration-none text-muted small">Forgot password?</a>
-                </div>
-                
-                <button type="submit" class="btn btn-dark btn-lg w-100 mb-3 rounded-3">Sign in</button>
-                
-                <div class="text-center mt-3">
-                    <span class="text-muted small">Non hai un account? </span>
-                    <a href="{{ url_for('gestione_utente.register') }}" class="text-dark fw-bold text-decoration-none">Register</a>
-                </div>
-            </form>
+            </div>
+
         </div>
     </div>
 </div>
 {% endblock %}
+

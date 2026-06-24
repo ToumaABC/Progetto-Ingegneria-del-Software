@@ -21,6 +21,33 @@
                     Aperto il {{ ticket.data_apertura.strftime('%d/%m/%Y') }}
                     da <strong>{{ ticket.associazione.studente.nome }} {{ ticket.associazione.studente.cognome }}</strong>
                   </small>
+
+                  {% if ticket.foto %}
+                    <div class="d-flex gap-2 mt-2 flex-wrap">
+                      {% for foto in ticket.foto %}
+                        <img src="{{ url_for('static', filename=foto.percorso_file) }}"
+                            alt="Foto ticket" class="rounded border"
+                            style="width: 70px; height: 70px; object-fit: cover; cursor: pointer;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#fotoModal{{ ticket.id }}"
+                            onclick="document.getElementById('modalImg{{ ticket.id }}').src = this.src;">
+                      {% endfor %}
+                    
+                      <div class="modal fade" id="fotoModal{{ ticket.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                          <div class="modal-content bg-dark">
+                            <div class="modal-header border-0">
+                              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center pt-0">
+                              <img id="modalImg{{ ticket.id }}" src="" class="img-fluid rounded">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    
+                    </div>
+                  {% endif %}
                 </div>
                 <div class="text-end">
                   {% if ticket.stato.value == 'aperto' %}
@@ -49,8 +76,12 @@
       {% endif %}
     {% endfor %}
   {% else %}
-    <p class="text-muted">Non hai ancora ricevuto ticket.</p>
-  {% endif %}
+  <div class="text-center py-5 bg-white rounded-4 border shadow-sm">
+      <i class="bi bi-ticket-perforated text-muted" style="font-size: 4rem;"></i>
+      <h4 class="fw-bold text-dark mt-3">Nessun ticket ricevuto</h4>
+      <p class="text-muted">Non hai ancora ricevuto ticket dagli studenti.</p>
+  </div>
+{% endif %}
 </div>
 
 {% endblock %}

@@ -2,7 +2,7 @@ import os
 from flask import current_app
 from werkzeug.utils import secure_filename
 from app import db
-from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioServizio
+from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioServizio, AnnuncioSalvato
 from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
 
@@ -71,9 +71,8 @@ class GestoreAnnunci:
         if foto_da_eliminare:
             for foto_id in foto_da_eliminare:
                 foto_check = FotoAnnuncio.query.get(foto_id)
-                if foto_check and foto_check.annuncio_id == annuncio.id: #verifico che la foto è dell'annuncio
+                if foto_check and foto_check.annuncio_id == annuncio.id:
                     GestoreFoto.elimina_foto_db(foto_check)
-
 
         # 3. Aggiunta delle nuove foto
         if file_foto:
@@ -82,6 +81,15 @@ class GestoreAnnunci:
                 if percorso:
                     nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=annuncio.id)
                     db.session.add(nuova_foto)
+
+        # 4. Aggiornamento dei servizi: rimuovo i collegamenti esistenti e ricreo quelli selezionati
+        servizi_selezionati = dati_form.getlist('servizi')
+        AnnuncioServizio.query.filter_by(annuncio_id=annuncio.id).delete()
+        for serv_id in servizi_selezionati:
+            servizio = Servizio.query.get(serv_id)
+            if servizio:
+                annuncio_servizio = AnnuncioServizio(annuncio_id=annuncio.id, servizio_id=servizio.id)
+                db.session.add(annuncio_servizio)
 
         db.session.commit()
 
@@ -142,3 +150,27 @@ class GestoreAnnunci:
                     pass
                 
         return l_annunci
+    
+    @staticmethod
+    def salvaAnnuncio(studente_id, annuncio_id):
+        salvataggio_esistente = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
+        if salvataggio_esistente:
+            return False
+        nuovo_salvataggio = AnnuncioSalvato(studente_id=studente_id, annuncio_id=annuncio_id)
+        db.session.add(nuovo_salvataggio)
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def eliminaAnnuncioSalvato(studente_id, annuncio_id):
+        salvataggio = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
+        if salvataggio:
+            db.session.delete(salvataggio)
+            db.session.commit()
+            return True
+        return False
+
+    @staticmethod
+    def getAnnunciSalvati(studente_id):
+        salvataggi = AnnuncioSalvato.query.filter_by(studente_id=studente_id).all()
+        return [salvataggio.annuncio for salvataggio in salvataggi]

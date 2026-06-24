@@ -35,35 +35,43 @@
                             Ticket
                         </a>
                     </li>
+                    
                 </ul>
 
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarUser" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> Ciao, {{ current_user.nome }}
+                                Ciao, {{ current_user.nome }}
                             </a>
       <ul class="dropdown-menu dropdown-menu-end shadow">
                                 <li>
                                     <a class="dropdown-item py-2" href="{{ url_for('gestione_utente.profilo') }}">
-                                        <i class="bi bi-person me-2"></i> Il mio Profilo
+                                    Il mio Profilo
                                     </a>
                                 </li>
+                                {% if current_user.ruolo == 'studente' %}
+                    <li>
+                        <a class="dropdown-item" href="{{ url_for('gestione_annunci.annunci_salvati') }}">
+                            Annunci Salvati
+                        </a>
+                    </li>
+                    {% endif %}
                                 <li>
                                     <a class="dropdown-item py-2" href="{{ url_for('gestione_utente.modifica_profilo') }}">
-                                        <i class="bi bi-pencil-square me-2"></i> Modifica Profilo
+                                        Modifica Profilo
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-danger py-2" href="{{ url_for('gestione_utente.logout') }}">
-                                        <i class="bi bi-box-arrow-right me-2"></i> Esci
+                                        Esci
                                     </a>
                                 </li>
                                 <li>
                                     <form action="{{ url_for('gestione_utente.elimina_account') }}" method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare definitivamente il tuo account? L\'azione è irreversibile.');" class="m-0 p-0">
                                         <button type="submit" class="dropdown-item text-danger fw-bold py-2">
-                                            <i class="bi bi-trash me-2"></i> Elimina Account
+                                            Elimina Account
                                         </button>
                                     </form>
                                 </li>

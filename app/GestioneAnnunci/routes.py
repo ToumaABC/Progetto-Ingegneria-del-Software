@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.GestioneAnnunci.gestore_annunci import GestoreAnnunci
-from app.GestioneAnnunci.models import AnnuncioStanza, Servizio
+from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioSalvato
 from app.GestioneStanza.models import AssociazioneStudenteStanza
 from app.GestioneAnnunci import gestione_annunci_bp
 from app.GestioneStanza.gestore_stanza import GestoreStanza
@@ -111,20 +111,21 @@ def miei_annunci():
 @gestione_annunci_bp.route('/', methods=['GET'])
 @login_required
 def index():
-    annunci = AnnuncioStanza.query.filter_by(visibile=True).all()
-
     query_testo = request.args.get('query')
     prezzo_max = request.args.get('prezzo_max')
-    
     servizi_selezionati = request.args.getlist('servizi')
 
-    # Chiamiamo la funzione Base del Gestore, passandole anche i filtri estesi
+    # Chiamiamo la funzione Base del Gestore
     annunci = GestoreAnnunci.ricerca_annunci(query_testo=query_testo, prezzo_max=prezzo_max, servizi_selezionati=servizi_selezionati)
-
     servizi = Servizio.query.all()
 
-    return render_template('index.html', annunci=annunci, servizi=servizi)
+    #Aggiungimento Qiao: Prepariamo la lista con gli ID degli annunci salvati
+    annunci_salvati_ids = []
+    if current_user.is_authenticated and current_user.ruolo == 'studente':
+        salvataggi = AnnuncioSalvato.query.filter_by(studente_id=current_user.id).all()
+        annunci_salvati_ids = [s.annuncio_id for s in salvataggi]
 
+    return render_template('index.html', annunci=annunci, servizi=servizi, annunci_salvati_ids=annunci_salvati_ids)
 
 @gestione_annunci_bp.route('/annuncio/<int:id>', methods=['GET'])
 @login_required
@@ -163,3 +164,46 @@ def visualizza_annuncio(id):
         ha_gia_recensito=ha_gia_recensito,
         annuncio_id_per_ticket=annuncio_id_per_ticket
     )
+
+#Rotte per salva annuncio
+@gestione_annunci_bp.route('/salva_annuncio/<int:id>', methods=['POST'])
+@login_required
+def salva_annuncio(id):
+    if current_user.ruolo != 'studente':
+        flash('Solo gli studenti possono salvare gli annunci.', 'danger')
+        return redirect(request.referrer or url_for('gestione_annunci.index'))
+    
+    annuncio = AnnuncioStanza.query.get_or_404(id)
+    successo = GestoreAnnunci.salvaAnnuncio(studente_id=current_user.id, annuncio_id=annuncio.id)
+    
+    if successo:
+        flash('Annuncio salvato nei preferiti!', 'success')
+    else:
+        flash('Hai già salvato questo annuncio.', 'warning')
+        
+    return redirect(request.referrer or url_for('gestione_annunci.index'))
+
+
+@gestione_annunci_bp.route('/rimuovi_salvato/<int:id>', methods=['POST'])
+@login_required
+def rimuovi_salvato(id):
+    if current_user.ruolo != 'studente':
+        return redirect(url_for('gestione_annunci.index'))
+    
+    successo = GestoreAnnunci.eliminaAnnuncioSalvato(studente_id=current_user.id, annuncio_id=id)
+    
+    if successo:
+        flash('Annuncio rimosso dai preferiti.', 'success')
+        
+    return redirect(request.referrer or url_for('gestione_annunci.annunci_salvati'))
+
+
+@gestione_annunci_bp.route('/annunci_salvati', methods=['GET'])
+@login_required
+def annunci_salvati():
+    if current_user.ruolo != 'studente':
+        flash('Questa sezione è riservata agli studenti.', 'danger')
+        return redirect(url_for('gestione_annunci.index'))
+    
+    annunci_preferiti = GestoreAnnunci.getAnnunciSalvati(studente_id=current_user.id)
+    return render_template('gestione_annunci/annunci_salvati.html', annunci=annunci_preferiti)
