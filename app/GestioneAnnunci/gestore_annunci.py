@@ -173,4 +173,4 @@ class GestoreAnnunci:
     @staticmethod
     def getAnnunciSalvati(studente_id):
         salvataggi = AnnuncioSalvato.query.filter_by(studente_id=studente_id).all()
-        return [salvataggio.annuncio for salvataggio in salvataggi]
+        return [salvataggio.annuncio for salvataggio in salvataggi if salvataggio.annuncio.visibile==True]

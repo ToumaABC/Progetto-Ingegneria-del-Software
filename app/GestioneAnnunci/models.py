@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime,timezone
 
 class AnnuncioSalvato(db.Model):
     __tablename__ = 'annuncio_salvato'
@@ -30,9 +30,8 @@ class AnnuncioStanza(db.Model):
     descrizione = db.Column(db.Text, nullable=False)
     costo = db.Column(db.Float, nullable=False)
     
-    # RF-14: Gestione visibilità annuncio
     visibile = db.Column(db.Boolean, default=True) 
-    data_pubblicazione = db.Column(db.DateTime, default=datetime.utcnow)
+    data_pubblicazione = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     
     # Chiave Esterna: il locatore che crea l'annuncio
     locatore_id = db.Column(db.Integer, db.ForeignKey('locatore.id'), nullable=False)

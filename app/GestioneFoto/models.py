@@ -1,5 +1,4 @@
 from app import db
-from datetime import datetime
 
 class Foto(db.Model):
     __abstract__ = True     

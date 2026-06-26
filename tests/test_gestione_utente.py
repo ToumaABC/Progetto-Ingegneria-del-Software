@@ -3,20 +3,19 @@ from app import create_app, db
 from app.GestioneUtente.models import Utente,Studente
 from werkzeug.security import generate_password_hash
 
+
 class TestGestioneUtente(unittest.TestCase):
 
     def setUp(self):
-        # Inizializza l'app in modalità testing (usa un db SQLite in memoria per non sporcare i dati reali)
         self.app = create_app()
+        self.app.config['TESTING'] = True
+        self.app.config['WTF_CSRF_ENABLED'] = False
         self.app_context = self.app.app_context()
         self.app_context.push()
-        
         self.client = self.app.test_client()
         db.drop_all()
         db.create_all()
 
-
-        # Pre-popola il database con un utente di test
         password_hash = generate_password_hash("Password123!")
         utente_test = Studente(
             nome="Mario", 

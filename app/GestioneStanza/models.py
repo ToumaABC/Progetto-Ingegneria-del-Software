@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime,timezone
 import enum
 
 class AssociazioneStudenteStanza(db.Model):
@@ -29,7 +29,7 @@ class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titolo = db.Column(db.String(100), nullable=False)
     descrizione = db.Column(db.String(1000), nullable=False)
-    data_apertura = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    data_apertura = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
     stato = db.Column(db.Enum(StatoTicket), default=StatoTicket.APERTO, nullable=False)
 
     associazione_id = db.Column(db.Integer, db.ForeignKey('associazione_studente_stanza.id'), nullable=False)
@@ -46,7 +46,7 @@ class Recensione(db.Model):
     titolo = db.Column(db.String(100), nullable=False)
     descrizione = db.Column(db.String(1000), nullable=False)
     valutazione = db.Column(db.Integer, nullable=False)  # 1-5
-    data_pubblicazione = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    data_pubblicazione = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
 
     associazione_id = db.Column(db.Integer, db.ForeignKey('associazione_studente_stanza.id'), nullable=False)
 

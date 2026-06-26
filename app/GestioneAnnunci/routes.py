@@ -2,10 +2,11 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.GestioneAnnunci.gestore_annunci import GestoreAnnunci
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioSalvato
-from app.GestioneStanza.models import AssociazioneStudenteStanza
 from app.GestioneAnnunci import gestione_annunci_bp
 from app.GestioneStanza.gestore_stanza import GestoreStanza
 from app.GestioneUtente.gestore_utente import GestoreUtente
+from app.GestioneStanza.gestore_stanza import GestoreStanza
+
 
 
 @gestione_annunci_bp.route('/aggiungi_annuncio', methods=['GET', 'POST'])
@@ -128,25 +129,18 @@ def index():
 @login_required
 def visualizza_annuncio(id):
 
-    annuncio = AnnuncioStanza.query.get_or_404(id)
+    annuncio = AnnuncioStanza.query.filter_by(id=id,visibile=True).first_or_404()
     locatore = GestoreUtente.visualizzaProfilo(annuncio.locatore_id)
     inquilini_associati = GestoreStanza.visualizzaInquilini(id)
     recensioni = GestoreStanza.visualizzaRecensioni(id)
     media_voto = GestoreStanza.calcolaValutazioneMedia(id)
 
-    # Controlla se lo studente loggato è associato e non ha già recensito
     puo_recensire = False
     ha_gia_recensito = False
-    annuncio_id_per_ticket = None
 
     if current_user.is_authenticated and current_user.ruolo == 'studente':
-        associazione = AssociazioneStudenteStanza.query.filter_by(
-            annuncio_id=id,
-            studente_id=current_user.id,
-            attiva=True
-        ).first()
+        associazione = GestoreStanza.get_associazione_attiva(id, current_user.id)
         if associazione:
-            annuncio_id_per_ticket = id
             ha_gia_recensito = associazione.recensione is not None
             puo_recensire = not ha_gia_recensito
 
@@ -159,7 +153,6 @@ def visualizza_annuncio(id):
         media_voto=media_voto,
         puo_recensire=puo_recensire,
         ha_gia_recensito=ha_gia_recensito,
-        annuncio_id_per_ticket=annuncio_id_per_ticket
     )
 
 @gestione_annunci_bp.route('/salva_annuncio/<int:id>', methods=['POST'])
@@ -169,7 +162,7 @@ def salva_annuncio(id):
         flash('Solo gli studenti possono salvare gli annunci.', 'danger')
         return redirect(request.referrer or url_for('gestione_annunci.index'))
     
-    annuncio = AnnuncioStanza.query.get_or_404(id)
+    annuncio = AnnuncioStanza.query.filter_by(id=id,visibile=True).first_or_404()
     successo = GestoreAnnunci.salvaAnnuncio(studente_id=current_user.id, annuncio_id=annuncio.id)
     
     if successo:
