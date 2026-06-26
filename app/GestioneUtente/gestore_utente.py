@@ -49,6 +49,12 @@ class GestoreUtente:
         email = dati_form.get('email')
         password = dati_form.get('password')
         ruolo = dati_form.get('ruolo')
+        nome=dati_form.get('nome')
+        cognome=dati_form.get('cognome')
+        numTelefono=dati_form.get('numTelefono')
+
+        if nome=="" or cognome =="" or email =="" or ruolo =="" or numTelefono=="":
+            raise ValueError("Compila tutti i campi")
 
         # Controllo unicità email
         if Utente.cercaUtentePerEmail(email):
@@ -62,23 +68,30 @@ class GestoreUtente:
         hashed_pw = generate_password_hash(password)
 
         if ruolo == 'studente':
+            corso = dati_form.get('corso')
+            facolta = dati_form.get('facolta')
+            universita = dati_form.get('universita')
+
+            if corso=="" or facolta =="" or universita =="":
+                raise ValueError("Compila tutti i campi")
+
             nuovo_utente = Studente(
-                nome=dati_form.get('nome'),
-                cognome=dati_form.get('cognome'),
+                nome=nome,
+                cognome=cognome,
                 email=email,
-                numTelefono=dati_form.get('numTelefono'),
+                numTelefono=numTelefono,
                 password=hashed_pw,
                 verificato=False, 
-                corso=dati_form.get('corso'),
-                facolta=dati_form.get('facolta'),
-                universita=dati_form.get('universita')
+                corso=corso,
+                facolta=facolta,
+                universita=universita
             )
         elif ruolo == 'locatore':
             nuovo_utente = Locatore(
-                nome=dati_form.get('nome'),
-                cognome=dati_form.get('cognome'),
+                nome=nome,
+                cognome=cognome,
                 email=email,
-                numTelefono=dati_form.get('numTelefono'),
+                numTelefono=numTelefono,
                 password=hashed_pw,
                 verificato=False
             )
@@ -104,7 +117,30 @@ class GestoreUtente:
         msg.body = f"Grazie per esserti registrato!\n\nPer attivare il tuo account, clicca sul seguente link di conferma:\n{link_verifica}\n\nIl link rimarrà attivo per un'ora."
         
         mail.send(msg)
+    
+
+    @staticmethod
+    def verficaEmail(token):
+        try:
+            email = GestoreUtente.confermaTokenVerifica(token)
+        except:
+            raise ValueError("Il link di attivazione è invalido o è scaduto")
         
+        if not email:
+            raise ValueError("Il link di attivazione è invalido o è scaduto")
+        
+        utente = Utente.cercaUtentePerEmail(email)
+        
+        if not utente:
+            raise ValueError("Nessun account associato a questo indirizzo email")
+        
+        if utente.verificato:
+            raise ValueError("Questo account risulta già verificato")
+        
+        utente.verificato = True
+        db.session.commit()
+        
+
     @staticmethod
     def generaTokenVerifica(email):
         #Inzializzo il serializer con la mia chiave privata
@@ -154,10 +190,10 @@ class GestoreUtente:
         db.session.commit()
 
     @staticmethod
-    def eliminaProfilo(utente):
+    def eliminaProfilo(utente_id):
+        utente = Utente.query.get(utente_id)
         db.session.delete(utente)
         db.session.commit()
-
 
     @staticmethod
     def generaNuovaPassword():

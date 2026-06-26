@@ -14,11 +14,10 @@ from app.GestioneStanza.gestore_stanza import GestoreStanza
 def aggiungi_annuncio():
     if current_user.ruolo != 'locatore':
         flash('Solo i locatori possono pubblicare annunci.', 'danger')
-        return redirect(url_for('gestore_utente.profilo'))
+        return redirect(url_for('gestione_annunci.index'))
 
     if request.method == 'POST':
         try:
-            # Passiamo il form, la lista delle foto caricate e l'id del locatore al gestore
             GestoreAnnunci.aggiungiAnnuncio(
                 dati_form=request.form, 
                 file_foto=request.files.getlist('foto'), 
@@ -101,7 +100,6 @@ def miei_annunci():
         flash('Accesso consentito solo ai locatori.', 'danger')
         return redirect(url_for('index'))
     
-    # Recupera tutti gli annunci inseriti dall'utente locatore loggato
     annunci_locatore = AnnuncioStanza.query.filter_by(locatore_id=current_user.id).all()
     return render_template('gestione_annunci/miei_annunci.html', annunci=annunci_locatore)
 

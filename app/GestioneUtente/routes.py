@@ -1,10 +1,7 @@
-from flask import render_template, request, redirect, url_for, flash, Blueprint
+from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from app.GestioneUtente import gestione_utente_bp
 from app.GestioneUtente.gestore_utente import GestoreUtente
-from functools import wraps
-from app import db
-from app.GestioneUtente.models import Utente
 
 
 
@@ -52,21 +49,13 @@ def logout():
 
 @gestione_utente_bp.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
-    email = GestoreUtente.confermaTokenVerifica(token)
-    if email:
-        utente = Utente.cercaUtentePerEmail(email)
-        if utente:
-            if utente.verificato:
-                flash('Questo account risulta già verificato.', 'info')
-            else:
-                # Transizione di stato nel DB SQLite
-                utente.verificato = True
-                db.session.commit()
-                flash('Account verificato con successo! Benvenuto in UniAlloggi, ora puoi effettuare il login.', 'success')
-            return redirect(url_for('gestione_utente.login'))
-            
-    flash('Il link di attivazione è invalido o è scaduto.', 'danger')
-    return redirect(url_for('gestione_utente.register'))
+    try:
+        GestoreUtente.verficaEmail(token)
+        flash('Account verificato con successo! Benvenuto in UniAlloggi, ora puoi effettuare il login.', 'success')
+        return redirect(url_for('gestione_utente.login'))
+    except ValueError as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('gestione_utente.register'))
 
 
 @gestione_utente_bp.route('/profilo/modifica', methods=['GET', 'POST'])
@@ -78,7 +67,6 @@ def modifica_profilo():
             flash('Profilo aggiornato correttamente.', 'success')
             return redirect(url_for('gestione_utente.profilo'))
         except ValueError as e:
-            # Mostra l'errore (es. "La vecchia password non è corretta")
             flash(str(e), 'danger')
         
     return render_template('gestione_utente/modifica_profilo.html', utente=current_user)
@@ -87,9 +75,7 @@ def modifica_profilo():
 @gestione_utente_bp.route('/profilo/elimina', methods=['POST'])
 @login_required
 def elimina_account():
-
-    utente = Utente.query.get(current_user.id)
-    GestoreUtente.eliminaProfilo(utente)
+    GestoreUtente.eliminaProfilo(current_user.id)
     logout_user()
     
     flash('Il tuo account è stato rimosso definitivamente dal sistema.', 'info')
@@ -104,12 +90,10 @@ def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email')
         try:
-            # Il Gestore esegue l'UC-6: Genera e invia la nuova password
             GestoreUtente.recuperaPassword(email)
             flash('Una nuova password è stata generata e inviata al tuo indirizzo email.', 'success')
             return redirect(url_for('gestione_utente.login'))
         except ValueError as e:
-            # Caso in cui l'email non esiste
             flash(str(e), 'danger')
             
     return render_template('gestione_utente/forgot_password.html')
