@@ -84,82 +84,8 @@
 
 <div class="row g-4 mb-5">
     {% for annuncio in annunci %}
-        <div class="col-12">
-            <!-- La card orizzontale con overflow nascosto per non far sbordare le immagini -->
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
-                <div class="row g-0">
-                    
-                    <!-- COLONNA IMMAGINE (Altezza fissa a 240px per tutte le immagini) -->
-                    <div class="col-md-4 col-lg-3" style="height: 240px;">
-                        {% if annuncio.foto %}
-                            <!-- object-fit-cover taglia l'immagine senza deformarla, riempiendo lo spazio -->
-                            <img src="{{ url_for('static', filename=annuncio.foto[0].percorso_file) }}" alt="Foto di {{ annuncio.titolo }}" class="img-fluid w-100 h-100 object-fit-cover">
-                        {% else %}
-                            <div class="w-100 h-100 bg-light d-flex flex-column align-items-center justify-content-center text-muted">
-                                <i class="bi bi-image fs-1 opacity-50"></i>
-                                <span class="small mt-2 opacity-50">Nessuna foto</span>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- COLONNA CONTENUTO -->
-                    <div class="col-md-8 col-lg-9">
-                        <div class="card-body d-flex flex-column h-100 p-4">
-                            
-                            <!-- Titolo, Indirizzo e Prezzo -->
-                           <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h4 class="card-title fw-bold text-dark mb-1">{{ annuncio.titolo }}</h4>
-                                    <p class="text-muted small m-0"><i class="bi bi-geo-alt-fill text-danger"></i> {{ annuncio.indirizzo }}</p>
-                                </div>
-                                
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="text-end">
-                                        <h4 class="fw-bold text-primary mb-0">€ {{ "%.2f"|format(annuncio.costo) }}</h4>
-                                        <span class="fs-6 fw-normal text-muted small">/mese</span>
-                                    </div>
-                                    
-                                    {% if current_user.is_authenticated and current_user.ruolo == 'studente' %}
-                                        {% if annuncio.id in annunci_salvati_ids %}
-                                            <form action="{{ url_for('gestione_annunci.rimuovi_salvato', id=annuncio.id) }}" method="POST" class="m-0">
-                                                <button type="submit" class="btn btn-danger rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; padding: 0;" title="Rimuovi dai preferiti">
-                                                    <i class="bi bi-heart-fill"></i>
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <form action="{{ url_for('gestione_annunci.salva_annuncio', id=annuncio.id) }}" method="POST" class="m-0">
-                                                <button type="submit" class="btn btn-outline-danger rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; padding: 0;" title="Salva nei preferiti">
-                                                    <i class="bi bi-heart"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Descrizione troncata -->
-                            <p class="card-text text-secondary mb-4" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                {{ annuncio.descrizione }}
-                            </p>
-                            
-                            <div class="mt-auto d-flex flex-wrap justify-content-between align-items-end gap-3">
-                                <a href="{{ url_for('gestione_annunci.visualizza_annuncio', id=annuncio.id) }}" class="btn btn-outline-primary w-100">Mostra Dettagli</a>
-                                
-                                <div class="d-flex flex-wrap gap-2">
-                                    {% for associazione in annuncio.servizi_collegati %}
-                                        <span class="badge text-bg-dark rounded-pill fw-normal px-3 py-2">
-                                            {{ associazione.servizio.nome_servizio }}
-                                        </span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
+        {% include 'gestione_annunci/_card_annuncio.html' %}
+       
     {% else %}
         <!-- MESSAGGIO NESSUN RISULTATO -->
         <div class="col-12">
