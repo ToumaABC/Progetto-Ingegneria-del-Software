@@ -23,7 +23,9 @@
                         <div class="carousel-inner h-100 w-100">
                             {% for f in annuncio.foto %}
                                 <div class="carousel-item h-100 w-100 {% if loop.first %}active{% endif %}">
-                                    <img src="{{ url_for('static', filename=f.percorso_file) }}" class="d-block w-100 h-100" style="object-fit: cover;" alt="Foto alloggio">
+                                    <img src="{{ url_for('static', filename=f.percorso_file) }}" class="d-block w-100 h-100" style="object-fit: cover; cursor: pointer;" alt="Foto alloggio"
+                                        data-bs-toggle="modal" data-bs-target="#fotoModalAnnuncio"
+                                        onclick="document.getElementById('carouselModalAnnuncio').dataset.startIndex = {{ loop.index0 }};">
                                 </div>
                             {% endfor %}
                         </div>
@@ -44,6 +46,48 @@
                         <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
                     </div>
                 {% endif %}
+                {% if annuncio.foto %}
+                    <div class="modal fade" id="fotoModalAnnuncio" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered modal-xl">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header border-0">
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-0">
+                                    <div id="carouselModalAnnuncio" class="carousel slide" data-bs-ride="false">
+                                        
+                                        {% if annuncio.foto|length > 1 %}
+                                        <div class="carousel-indicators">
+                                            {% for f in annuncio.foto %}
+                                                <button type="button" data-bs-target="#carouselModalAnnuncio" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}"></button>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="carousel-inner">
+                                            {% for f in annuncio.foto %}
+                                                <div class="carousel-item {% if loop.first %}active{% endif %}" style="height: 80vh;">
+                                                    <img src="{{ url_for('static', filename=f.percorso_file) }}" class="d-block w-100 h-100" style="object-fit: contain;" alt="Foto alloggio">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+
+                                        {% if annuncio.foto|length > 1 %}
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselModalAnnuncio" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Precedente</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#carouselModalAnnuncio" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Successivo</span>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
             </div>
 
             <ul class="list-unstyled ms-2">
@@ -190,3 +234,11 @@
 </div>
 
 {% endblock %}
+<script>
+document.getElementById('fotoModalAnnuncio').addEventListener('shown.bs.modal', function () {
+    const carouselEl = document.getElementById('carouselModalAnnuncio');
+    const startIndex = parseInt(carouselEl.dataset.startIndex || 0);
+    const carousel = bootstrap.Carousel.getOrCreateInstance(carouselEl);
+    carousel.to(startIndex);
+});
+</script>

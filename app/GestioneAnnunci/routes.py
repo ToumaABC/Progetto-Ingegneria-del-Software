@@ -202,4 +202,8 @@ def annunci_salvati():
         return redirect(url_for('gestione_annunci.index'))
     
     annunci_preferiti = GestoreAnnunci.getAnnunciSalvati(studente_id=current_user.id)
-    return render_template('gestione_annunci/annunci_salvati.html', annunci=annunci_preferiti)
+    
+    # AGGIUNTA: Creiamo la lista degli ID per far funzionare la logica dei cuoricini rossi nella card
+    annunci_salvati_ids = [annuncio.id for annuncio in annunci_preferiti]
+    
+    return render_template('gestione_annunci/annunci_salvati.html', annunci=annunci_preferiti, annunci_salvati_ids=annunci_salvati_ids)
