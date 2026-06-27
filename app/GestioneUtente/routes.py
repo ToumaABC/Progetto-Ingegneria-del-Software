@@ -50,7 +50,7 @@ def logout():
 @gestione_utente_bp.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
     try:
-        GestoreUtente.verficaEmail(token)
+        GestoreUtente.verificaEmail(token)
         flash('Account verificato con successo! Benvenuto in UniAlloggi, ora puoi effettuare il login.', 'success')
         return redirect(url_for('gestione_utente.login'))
     except ValueError as e:
@@ -75,7 +75,12 @@ def modifica_profilo():
 @gestione_utente_bp.route('/profilo/elimina', methods=['POST'])
 @login_required
 def elimina_account():
-    GestoreUtente.eliminaProfilo(current_user.id)
+    try:
+        GestoreUtente.eliminaProfilo(current_user.id)
+    except ValueError as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('gestione_utente.profilo'))
+    
     logout_user()
     
     flash('Il tuo account è stato rimosso definitivamente dal sistema.', 'info')
