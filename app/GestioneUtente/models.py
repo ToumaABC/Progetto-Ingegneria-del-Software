@@ -33,6 +33,17 @@ class Studente(Utente):
     facolta = db.Column(db.String(100), nullable=True)
     universita = db.Column(db.String(100), nullable=True)
 
+    salvataggi = db.relationship('AnnuncioSalvato', backref='studente', lazy=True)
+    
+
+    def get_lista_annunci_salvati(self):
+        lista_annunci_salvati = []
+        for salvataggio in self.salvataggi:
+            if(salvataggio.annuncio.visibile==True):
+                lista_annunci_salvati.append(salvataggio.annuncio)
+        return lista_annunci_salvati
+
+    
     __mapper_args__ = {
         'polymorphic_identity': 'studente'
     }
@@ -40,6 +51,13 @@ class Studente(Utente):
 class Locatore(Utente):
     __tablename__ = 'locatore'
     id = db.Column(db.Integer, db.ForeignKey('utente.id'), primary_key=True)
+
+    annunci = db.relationship(
+        'AnnuncioStanza', 
+        backref='locatore', 
+        lazy=True, 
+        cascade="all, delete-orphan"
+    )
 
     __mapper_args__ = {
         'polymorphic_identity': 'locatore'

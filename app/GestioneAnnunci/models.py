@@ -7,8 +7,6 @@ class AnnuncioSalvato(db.Model):
     studente_id = db.Column(db.Integer, db.ForeignKey('studente.id'), primary_key=True)
     annuncio_id = db.Column(db.Integer, db.ForeignKey('annuncio_stanza.id'), primary_key=True)
     
-    # Relazioni (permettono di accedere a studente.annunci_salvati o annuncio.salvato_da_studenti)
-    studente = db.relationship('Studente', backref=db.backref('annunci_salvati', cascade="all, delete-orphan"))
     annuncio = db.relationship('AnnuncioStanza', backref=db.backref('salvato_da_studenti', cascade="all, delete-orphan"))
 
 
@@ -36,8 +34,6 @@ class AnnuncioStanza(db.Model):
     # Chiave Esterna: il locatore che crea l'annuncio
     locatore_id = db.Column(db.Integer, db.ForeignKey('locatore.id'), nullable=False)
     
-    # Relazione con il locatore
-    locatore = db.relationship('Locatore', backref=db.backref('annunci_pubblicati', lazy=True, cascade="all, delete-orphan"))
     # Relazione 1-a-Molti con FotoAnnuncio
     foto = db.relationship('FotoAnnuncio', backref='annuncio', lazy=True, cascade="all, delete-orphan")
 

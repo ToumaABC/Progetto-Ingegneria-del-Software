@@ -10,12 +10,11 @@ from app.GestioneFoto.gestore_foto import GestoreFoto
 class GestoreAnnunci:
 
     @staticmethod
-    def aggiungiAnnuncio(dati_form, file_foto, locatore_id):
-        """Metodo per la creazione di un nuovo annuncio (RF-7)."""
-        titolo = dati_form.get('titolo')
-        indirizzo = dati_form.get('indirizzo')
-        descrizione = dati_form.get('descrizione')
-        costo = dati_form.get('costo')
+    def aggiungiAnnuncio(dati, servizi, file_foto, locatore_id):
+        titolo = dati.get("titolo")
+        indirizzo = dati.get("indirizzo")
+        descrizione = dati.get("descrizione")
+        costo = dati.get("costo")
 
         if not titolo or not indirizzo or not descrizione or not costo:
             raise ValueError("Compila tutti i campi obbligatori.")
@@ -29,11 +28,11 @@ class GestoreAnnunci:
             locatore_id=locatore_id
         )
         db.session.add(nuovo_annuncio)
-        #Faccio il flush per ottenere l'id dell'annuncio
+        #Faccio il flush per ottenere l"id dell"annuncio
         db.session.flush() 
 
         # Gestione Servizi
-        servizi_selezionati = dati_form.getlist('servizi')
+        servizi_selezionati = servizi
         for serv_id in servizi_selezionati:
             servizio = Servizio.query.get(serv_id)
             if servizio:
@@ -41,12 +40,12 @@ class GestoreAnnunci:
                 db.session.add(annuncio_servizio)
 
         # Gestione Foto
-        if not file_foto or file_foto[0].filename == '':
+        if not file_foto or file_foto[0].filename == "":
              raise ValueError("È richiesta almeno una foto per l'annuncio.")
 
 
         for file in file_foto:
-            percorso = GestoreFoto.salva_file_fisico(file, 'annunci', 'annuncio', nuovo_annuncio.id)
+            percorso = GestoreFoto.salva_file_fisico(file, "annunci", "annuncio", nuovo_annuncio.id)
             if percorso:
                 nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=nuovo_annuncio.id)
                 db.session.add(nuova_foto)
@@ -55,35 +54,31 @@ class GestoreAnnunci:
         return nuovo_annuncio
 
     @staticmethod
-    def modificaAnnuncio(annuncio, dati_form, file_foto=None, foto_da_eliminare=None):
-        """Metodo per la modifica dei dati di un annuncio e delle sue foto."""
-        
+    def modificaAnnuncio(annuncio, servizi, dati, file_foto=None, foto_da_eliminare=None):
+
         # 1. Aggiornamento dei campi testuali
-        annuncio.titolo = dati_form.get('titolo', annuncio.titolo)
-        annuncio.indirizzo = dati_form.get('indirizzo', annuncio.indirizzo)
-        annuncio.descrizione = dati_form.get('descrizione', annuncio.descrizione)
+        annuncio.titolo = dati.get("titolo", annuncio.titolo)
+        annuncio.indirizzo = dati.get("indirizzo", annuncio.indirizzo)
+        annuncio.descrizione = dati.get("descrizione", annuncio.descrizione)
         
-        costo = dati_form.get('costo')
+        costo = dati.get("costo")
         if costo:
             annuncio.costo = float(costo)
 
-        # Eliminazione delle foto selezionate
         if foto_da_eliminare:
             for foto_id in foto_da_eliminare:
                 foto_check = FotoAnnuncio.query.get(foto_id)
                 if foto_check and foto_check.annuncio_id == annuncio.id:
                     GestoreFoto.elimina_foto_db(foto_check)
 
-        # 3. Aggiunta delle nuove foto
         if file_foto:
             for file in file_foto:
-                percorso = GestoreFoto.salva_file_fisico(file, sotto_cartella='annunci', prefisso_nome='annuncio', id_entita=annuncio.id)
+                percorso = GestoreFoto.salva_file_fisico(file, sotto_cartella="annunci", prefisso_nome="annuncio", id_entita=annuncio.id)
                 if percorso:
                     nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=annuncio.id)
                     db.session.add(nuova_foto)
 
-        # 4. Aggiornamento dei servizi: rimuovo i collegamenti esistenti e ricreo quelli selezionati
-        servizi_selezionati = dati_form.getlist('servizi')
+        servizi_selezionati = servizi
         AnnuncioServizio.query.filter_by(annuncio_id=annuncio.id).delete()
         for serv_id in servizi_selezionati:
             servizio = Servizio.query.get(serv_id)
@@ -94,7 +89,8 @@ class GestoreAnnunci:
         db.session.commit()
 
     @staticmethod
-    def eliminaAnnuncio(annuncio):
+    def eliminaAnnuncio(annuncio_id,user_id):
+        annuncio = GestoreAnnunci.verifica_proprieta_annuncio(annuncio_id, user_id)
         for foto in annuncio.foto:
             GestoreFoto.elimina_file_fisico(foto.percorso_file)
         db.session.delete(annuncio)
@@ -102,7 +98,8 @@ class GestoreAnnunci:
 
     @staticmethod
     def cambiaVisibilita(annuncio):
-        """Oscura o rende visibile un annuncio (RF-14)."""
+        if not annuncio:
+            raise ValueError("Annuncio non trovato.")
         annuncio.visibile = not annuncio.visibile
         db.session.commit()
         return annuncio.visibile
@@ -138,7 +135,7 @@ class GestoreAnnunci:
             pass # Se il valore non è numerico, restituisce la query inalterata
         
         if servizi_selezionati:
-            # Per ogni servizio selezionato, obblighiamo l'annuncio a possederlo 
+            # Per ogni servizio selezionato, obblighiamo l"annuncio a possederlo 
             print("Ciao")
 
             for serv_id in servizi_selezionati:
@@ -153,24 +150,37 @@ class GestoreAnnunci:
     
     @staticmethod
     def salvaAnnuncio(studente_id, annuncio_id):
+        if not AnnuncioStanza.query.get(annuncio_id) :
+            raise ValueError("Annuncio non trovato.")
         salvataggio_esistente = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
         if salvataggio_esistente:
-            return False
+            raise ValueError("Hai già salvato questo annuncio.")
         nuovo_salvataggio = AnnuncioSalvato(studente_id=studente_id, annuncio_id=annuncio_id)
         db.session.add(nuovo_salvataggio)
         db.session.commit()
-        return True
 
     @staticmethod
     def eliminaAnnuncioSalvato(studente_id, annuncio_id):
         salvataggio = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
-        if salvataggio:
-            db.session.delete(salvataggio)
-            db.session.commit()
-            return True
-        return False
+        if not salvataggio:
+            raise ValueError("Non puoi rimuovere un annuncio non salvato ")
+        db.session.delete(salvataggio)
+        db.session.commit()
+            
+
 
     @staticmethod
-    def getAnnunciSalvati(studente_id):
-        salvataggi = AnnuncioSalvato.query.filter_by(studente_id=studente_id).all()
-        return [salvataggio.annuncio for salvataggio in salvataggi if salvataggio.annuncio.visibile==True]
+    def get_lista_servizi():
+        return Servizio.query.all()
+    
+    @staticmethod
+    def verifica_proprieta_annuncio(annuncio_id, utente_id):
+        annuncio = AnnuncioStanza.query.get(annuncio_id)
+        if not annuncio:
+            raise ValueError("Annuncio non trovato.")
+            
+        if annuncio.locatore_id != utente_id:
+            raise ValueError("Azione non autorizzata. Non sei il proprietario di questo annuncio.")
+            
+        return annuncio
+    
