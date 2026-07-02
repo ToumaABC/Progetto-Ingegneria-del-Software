@@ -1,10 +1,14 @@
 import os
+from idlelib import query
+
 from flask import current_app
 from werkzeug.utils import secure_filename
 from app import db
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioServizio, AnnuncioSalvato
 from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
+from app.GestioneStanza.gestore_stanza import GestoreStanza
+from app.GestioneUtente.gestore_utente import GestoreUtente
 
 
 class GestoreAnnunci:
@@ -105,11 +109,32 @@ class GestoreAnnunci:
         return annuncio.visibile
 
     @staticmethod
+    def visualizza_annuncio(id_annuncio):
+        try:
+            annuncio = db.session.get(AnnuncioStanza, id_annuncio)
+        except:
+            raise ValueError("Annuncio non trovato.")
+        locatore = GestoreUtente.visualizzaProfilo(annuncio.locatore_id)
+        inquilini = GestoreStanza.visualizzaInquilini(id_annuncio)
+        recensioni = GestoreStanza.visualizzaRecensioni(id_annuncio)
+        media_voto = GestoreStanza.calcolaValutazioneMedia(id_annuncio)
+
+        return {
+            "annuncio": annuncio,
+            "locatore": locatore,
+            "inquilini": inquilini,
+            "recensioni": recensioni,
+            "media_voto": media_voto
+        }
+
+
+
+    @staticmethod
     def ricerca_annunci(query_testo=None, prezzo_max=None, servizi_selezionati=None):
 
         annunci = AnnuncioStanza.query.filter_by(visibile=True)
 
-        # Esecuzione flusso principale (Ricerca)
+        # Flusso principale ricerca
         if query_testo:
             search = f"%{query_testo}%"
             annunci = annunci.filter(
@@ -120,7 +145,7 @@ class GestoreAnnunci:
                 )
             )
 
-        # Punto di estensione se ci sono filtri appllico i giltri
+        # Punto di estensione se ci sono filtri
         if prezzo_max or servizi_selezionati:
             annunci = GestoreAnnunci.filtra_annunci(annunci, prezzo_max,servizi_selezionati)
             
@@ -135,9 +160,7 @@ class GestoreAnnunci:
             pass # Se il valore non è numerico, restituisce la query inalterata
         
         if servizi_selezionati:
-            # Per ogni servizio selezionato, obblighiamo l"annuncio a possederlo 
-            print("Ciao")
-
+            # Per ogni servizio selezionato, obblighiamo l"annuncio a possederlo
             for serv_id in servizi_selezionati:
                 try:
                     id_serv = int(serv_id)
@@ -166,7 +189,6 @@ class GestoreAnnunci:
             raise ValueError("Non puoi rimuovere un annuncio non salvato ")
         db.session.delete(salvataggio)
         db.session.commit()
-            
 
 
     @staticmethod
@@ -183,4 +205,4 @@ class GestoreAnnunci:
             raise ValueError("Azione non autorizzata. Non sei il proprietario di questo annuncio.")
             
         return annuncio
-    
+

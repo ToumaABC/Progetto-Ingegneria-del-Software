@@ -1,6 +1,8 @@
 from app import db
 from flask_login import UserMixin
 
+
+
 class Utente(UserMixin, db.Model):
     __tablename__ = 'utente'
     
@@ -34,7 +36,7 @@ class Studente(Utente):
     universita = db.Column(db.String(100), nullable=True)
 
     salvataggi = db.relationship('AnnuncioSalvato', backref='studente', lazy=True)
-    
+
 
     def get_lista_annunci_salvati(self):
         lista_annunci_salvati = []
@@ -43,7 +45,21 @@ class Studente(Utente):
                 lista_annunci_salvati.append(salvataggio.annuncio)
         return lista_annunci_salvati
 
-    
+    def get_associazione_attiva(self, annuncio_id):
+        for associazione in self.associazioni_stanze:
+            if associazione.annuncio_id == annuncio_id and associazione.attiva:
+                return associazione
+        return None
+
+    def associato_alla_stanza(self, annuncio_id):
+        return self.get_associazione_attiva(annuncio_id) is not None
+
+    def ha_recensito_annuncio(self, annuncio_id):
+        for associazione in self.associazioni_stanze:
+            if associazione.annuncio_id == annuncio_id and associazione.recensione is not None:
+                return True
+        return False
+
     __mapper_args__ = {
         'polymorphic_identity': 'studente'
     }

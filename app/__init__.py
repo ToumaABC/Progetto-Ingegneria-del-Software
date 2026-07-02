@@ -4,9 +4,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
-
-
-
 load_dotenv()
 
 db = SQLAlchemy()
@@ -32,7 +29,8 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
-    
+
+
     login_manager.login_view = 'gestione_utente.login'
 
     from app.GestioneUtente import gestione_utente_bp
@@ -52,15 +50,13 @@ def create_app():
     login_manager.login_message_category = "warning"
 
     with app.app_context():
-        from app.GestioneUtente.models import Utente, Studente, Locatore
+        from app.GestioneUtente.models import  Studente, Locatore
         from app.GestioneAnnunci.models import AnnuncioStanza, AnnuncioSalvato, Servizio
         from app.GestioneStanza.models import AssociazioneStudenteStanza, Ticket, StatoTicket, Recensione
         from app.GestioneFoto.models import FotoAnnuncio,FotoTicket, Foto
-        servizi_default = ["WiFi", "Aria Condizionata", "Lavatrice", "Riscaldamento", "Ascensore", "Posto Auto"]
-        
+
         db.create_all()
 
-        from app.GestioneAnnunci.models import Servizio
         servizi_default = ["WiFi", "Aria Condizionata", "Lavatrice", "Riscaldamento", "Ascensore", "Posto Auto"]
         
         if not Servizio.query.first():

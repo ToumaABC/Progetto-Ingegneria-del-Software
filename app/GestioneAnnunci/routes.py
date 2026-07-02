@@ -1,9 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.GestioneAnnunci.gestore_annunci import GestoreAnnunci
-from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioSalvato
+from app.GestioneAnnunci.models import AnnuncioStanza
 from app.GestioneAnnunci import gestione_annunci_bp
-from app.GestioneStanza.gestore_stanza import GestoreStanza
 from app.GestioneUtente.gestore_utente import GestoreUtente
 from app.GestioneStanza.gestore_stanza import GestoreStanza
 
@@ -129,32 +128,26 @@ def index():
 @login_required
 def visualizza_annuncio(id):
 
-    annuncio = AnnuncioStanza.query.filter_by(id=id,visibile=True).first_or_404()
-    locatore = GestoreUtente.visualizzaProfilo(annuncio.locatore_id)
-    inquilini_associati = GestoreStanza.visualizzaInquilini(id)
-    recensioni = GestoreStanza.visualizzaRecensioni(id)
-    media_voto = GestoreStanza.calcolaValutazioneMedia(id)
+    try:
+        result = GestoreAnnunci.visualizza_annuncio(id)
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("gestione_annunci.index"))
 
     puo_recensire = False
     ha_gia_recensito = False
 
     if current_user.is_authenticated and current_user.ruolo == "studente":
-        try:
-            associazione = GestoreStanza.get_associazione_attiva(id, current_user.id)
-        except ValueError as e:
-            associazione = None
-        
-        if associazione:
-            ha_gia_recensito = associazione.recensione is not None
-            puo_recensire = not ha_gia_recensito
+        ha_gia_recensito = current_user.ha_recensito_annuncio(id)
+        puo_recensire = current_user.associato_alla_stanza(id)
 
     return render_template(
         "gestione_annunci/visualizza_annuncio.html",
-        annuncio=annuncio,
-        locatore=locatore,
-        inquilini_associati=inquilini_associati,
-        recensioni=recensioni,
-        media_voto=media_voto,
+        annuncio=result["annuncio"],
+        locatore=result["locatore"],
+        inquilini_associati=result["inquilini"],
+        recensioni=result["recensioni"],
+        media_voto=result["media_voto"],
         puo_recensire=puo_recensire,
         ha_gia_recensito=ha_gia_recensito,
     )

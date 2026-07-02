@@ -2,16 +2,18 @@ from flask import current_app, url_for
 import string
 import random
 from flask_mail import Message
-from app import db,mail
 from app.GestioneUtente.models import Utente, Studente, Locatore
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 import re
 
 class GestoreUtente:
-    
-    @staticmethod
-    def cercaStudentePerEmail(email):
+
+    def __init__(self,db,mail):
+        self.db = db
+        self.mail = mail
+
+    def cercaStudentePerEmail(self, email):
         utente = Utente.cercaUtentePerEmail(email)
         if utente and utente.ruolo == 'studente':
             return utente
@@ -27,8 +29,7 @@ class GestoreUtente:
             return False
         return True
 
-    @staticmethod
-    def login(email, password):
+    def login(self, email, password):
         utente = Utente.cercaUtentePerEmail(email)
 
         if not utente:
@@ -38,13 +39,12 @@ class GestoreUtente:
             raise ValueError("Credenziali errate.")
 
         if not utente.verificato:
-            GestoreUtente.inviaEmailVerifica(email)
+            self.inviaEmailVerifica(email)
             raise ValueError("Il tuo account è in attesa di verifica. Ti abbiamo inviato una nuova email.") 
 
         return utente
 
-    @staticmethod
-    def registrazioneUtente(dati_form):
+    def registrazioneUtente(self, dati_form):
 
         email = dati_form.get('email')
         password = dati_form.get('password')
@@ -82,15 +82,14 @@ class GestoreUtente:
         else:
             raise ValueError("Ruolo non valido.")
 
-        db.session.add(nuovo_utente)
-        db.session.commit()
+        self.db.session.add(nuovo_utente)
+        self.db.session.commit()
 
-        GestoreUtente.inviaEmailVerifica(email)
+        self.inviaEmailVerifica(email)
         
         return nuovo_utente
     
-    @staticmethod
-    def inviaEmailVerifica(email):
+    def inviaEmailVerifica(self, email):
         token = GestoreUtente.generaTokenVerifica(email)
         link_verifica = url_for('gestione_utente.verify_email', token=token, _external=True)
         
@@ -100,10 +99,9 @@ class GestoreUtente:
         )
         msg.body = f"Grazie per esserti registrato!\n\nPer attivare il tuo account, clicca sul seguente link di conferma:\n{link_verifica}\n\nIl link rimarrà attivo per un'ora."
         
-        mail.send(msg)
+        self.mail.send(msg)
     
-    @staticmethod
-    def verificaEmail(token):
+    def verificaEmail(self, token):
         try:
             email = GestoreUtente.confermaTokenVerifica(token)
         except:
@@ -121,8 +119,8 @@ class GestoreUtente:
             raise ValueError("Questo account risulta già verificato")
         
         utente.verificato = True
-        db.session.commit()
-        
+        self.db.session.commit()
+
     @staticmethod
     def generaTokenVerifica(email):
         #Inzializzo il serializer con la mia chiave privata
@@ -140,11 +138,13 @@ class GestoreUtente:
         except (SignatureExpired, BadTimeSignature):
             return None
         
-    @staticmethod
-    def modificaProfilo(utente, dati_form):        
+    def modificaProfilo(self, utente, dati_form):
         vecchia_password = dati_form.get('vecchia_password')
         nuova_password = dati_form.get('nuova_password')
-        
+
+        if nuova_password and not vecchia_password:
+            raise ValueError("Per modificare la password inserire anche la password vecchia")
+
         if vecchia_password and nuova_password:
             # Verifica che la vecchia password sia corretta
             if not check_password_hash(utente.password, vecchia_password):
@@ -186,16 +186,15 @@ class GestoreUtente:
 
    
             
-        db.session.commit()
+        self.db.session.commit()
 
-    @staticmethod
-    def eliminaProfilo(utente_id):
+    def eliminaProfilo(self, utente_id):
         utente = Utente.query.get(utente_id)
         if not utente:
             raise ValueError("Utente non trovato")
         
-        db.session.delete(utente)
-        db.session.commit()
+        self.db.session.delete(utente)
+        self.db.session.commit()
 
     @staticmethod
     def generaNuovaPassword():
@@ -216,8 +215,7 @@ class GestoreUtente:
         random.shuffle(password_list)
         return "".join(password_list)
     
-    @staticmethod
-    def recuperaPassword(email):
+    def recuperaPassword(self, email):
         utente = Utente.cercaUtentePerEmail(email)
         if not utente:
             raise ValueError("Nessun account associato a questo indirizzo email.")
@@ -230,16 +228,15 @@ class GestoreUtente:
         msg = Message("Recupero Password - UniAlloggi", recipients=[email])
         msg.body = f"Hai richiesto il recupero della password per il tuo account UniAlloggi.\n\nLa tua nuova password generata dal sistema è: {nuova_password}\n\nPuoi utilizzare questa password per effettuare il login. Ti consigliamo di modificarla successivamente dal tuo profilo."
         try:
-            mail.send(msg)
+            self.mail.send(msg)
             #Aggiorno la password cifrata nel db solo dopo l'invio della email
-            db.session.commit()
+            self.db.session.commit()
         except Exception:
             #Se l'invio dell'eamil non va a buon fine riporto la sessione del database a quella iniziale e sollevo l'eccezione
-            db.session.rollback() 
+            self.db.session.rollback()
             raise ValueError("Impossibile inviare l'email di recupero password.")
 
-    @staticmethod
-    def visualizzaProfilo(utente_id):
+    def visualizzaProfilo(self, utente_id):
         utente = Utente.query.get(utente_id)
         if not utente:
             raise ValueError("Utente non trovato")

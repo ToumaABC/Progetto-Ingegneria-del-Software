@@ -1,9 +1,10 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app.GestioneUtente import gestione_utente_bp
 from app.GestioneUtente.gestore_utente import GestoreUtente
+from app import db,mail
 
-
+gestore_utente = GestoreUtente(db,mail)
 
 @gestione_utente_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -14,7 +15,7 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         try:
-            utente = GestoreUtente.login(email, password)
+            utente = gestore_utente.login(email, password)
             login_user(utente)
             return redirect(url_for('gestione_annunci.index'))
         except ValueError as e:
@@ -29,7 +30,7 @@ def register():
         return redirect(url_for('gestione_annunci.index'))
     if request.method == 'POST':
         try:
-            GestoreUtente.registrazioneUtente(request.form)
+            gestore_utente.registrazioneUtente(request.form.to_dict())
             flash('Registrazione completata! Controlla la tua email per verificare l\'account.', 'success')
             return redirect(url_for('gestione_utente.login'))
         except ValueError as e:
@@ -46,11 +47,10 @@ def logout():
     return redirect(url_for('gestione_utente.login'))
 
 
-
 @gestione_utente_bp.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
     try:
-        GestoreUtente.verificaEmail(token)
+        gestore_utente.verificaEmail(token)
         flash('Account verificato con successo! Benvenuto in UniAlloggi, ora puoi effettuare il login.', 'success')
         return redirect(url_for('gestione_utente.login'))
     except ValueError as e:
@@ -63,7 +63,7 @@ def verify_email(token):
 def modifica_profilo():
     if request.method == 'POST':
         try:
-            GestoreUtente.modificaProfilo(current_user, request.form)
+            gestore_utente.modificaProfilo(current_user, request.form)
             flash('Profilo aggiornato correttamente.', 'success')
             return redirect(url_for('gestione_utente.profilo'))
         except ValueError as e:
@@ -76,7 +76,7 @@ def modifica_profilo():
 @login_required
 def elimina_account():
     try:
-        GestoreUtente.eliminaProfilo(current_user.id)
+        gestore_utente.eliminaProfilo(current_user.id)
     except ValueError as e:
         flash(str(e), 'danger')
         return redirect(url_for('gestione_utente.profilo'))
@@ -95,7 +95,7 @@ def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email')
         try:
-            GestoreUtente.recuperaPassword(email)
+            gestore_utente.recuperaPassword(email)
             flash('Una nuova password è stata generata e inviata al tuo indirizzo email.', 'success')
             return redirect(url_for('gestione_utente.login'))
         except ValueError as e:
@@ -113,7 +113,7 @@ def profilo(id):
     target_id = id if id is not None else current_user.id
     
     try:
-        utente_da_visualizzare = GestoreUtente.visualizzaProfilo(target_id)
+        utente_da_visualizzare = gestore_utente.visualizzaProfilo(target_id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for('gestione_annunci.index'))

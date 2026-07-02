@@ -22,7 +22,6 @@ class GestoreStanza:
             associazione_disattivata.attiva = True
             db.session.commit()
             return associazione_disattivata
-        
 
         nuova_associazione = AssociazioneStudenteStanza(
             annuncio_id=annuncio_id,
@@ -69,6 +68,9 @@ class GestoreStanza:
     def nuovoTicket(annuncio_id, studente_id, titolo, descrizione,files=None):
         associazione = GestoreStanza.get_associazione_attiva(annuncio_id, studente_id)
 
+        if not titolo or not descrizione:
+            raise ValueError("Inserire almeno titolo e descrizione.")
+
         ticket = Ticket(
             titolo=titolo,
             descrizione=descrizione,
@@ -79,14 +81,16 @@ class GestoreStanza:
 
         db.session.flush()  
 
-        if files:
-            for file in files:
-                if file and file.filename != '':
+        for file in files:
+            if file and file.filename != '':
+                try:
                     percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket.id)
-                    if percorso:
-                        foto = FotoTicket(percorso_file=percorso, ticket_id=ticket.id)
-                        db.session.add(foto)
-
+                except:
+                    db.session.rollback()
+                    raise
+                if percorso:
+                    foto = FotoTicket(percorso_file=percorso, ticket_id=ticket.id)
+                    db.session.add(foto)
 
         db.session.commit()
         return ticket
@@ -110,7 +114,13 @@ class GestoreStanza:
 
     @staticmethod
     def modificaTicket(ticket_id, studente_id, titolo, descrizione,foto_da_aggiungere=None,foto_da_eliminare=None):
-        ticket = Ticket.query.get_or_404(ticket_id)
+        ticket = Ticket.query.get(ticket_id)
+
+        if not ticket:
+            raise ValueError("Ticket non esiste.")
+
+        if not titolo or not descrizione:
+            raise ValueError("Inserire almeno titolo e descrizione")
 
         if ticket.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a modificare questo ticket.")
@@ -128,18 +138,23 @@ class GestoreStanza:
         if foto_da_aggiungere:
             for file in foto_da_aggiungere:
                 if file and file.filename != '':
-                    percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket_id)
+                    try:
+                        percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket_id)
+                    except:
+                        raise
                     if percorso:
                         foto = FotoTicket(percorso_file=percorso, ticket_id=ticket_id)
                         db.session.add(foto)
-                        print("AAA")
 
         db.session.commit()
         return ticket
 
     @staticmethod
     def eliminaTicket(ticket_id, studente_id):
-        ticket = Ticket.query.get_or_404(ticket_id)
+        ticket = Ticket.query.get(ticket_id)
+
+        if not ticket:
+            raise ValueError("Ticket non esiste.")
 
         if ticket.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a eliminare questo ticket.")
@@ -155,7 +170,10 @@ class GestoreStanza:
 
     @staticmethod
     def aggiornaStatoTicket(ticket_id, locatore_id):
-        ticket = Ticket.query.get_or_404(ticket_id)
+        ticket = Ticket.query.get(ticket_id)
+
+        if not ticket:
+            raise ValueError("Ticket non esiste.")
 
         # Verifica che il ticket appartenga a un annuncio del locatore
         if ticket.associazione.annuncio.locatore_id != locatore_id:
@@ -215,6 +233,9 @@ class GestoreStanza:
         if associazione.recensione:
             raise ValueError("Hai già pubblicato una recensione per questa stanza.")
 
+        if not titolo or not descrizione or not valutazione:
+            raise ValueError("Compila tutti i campi")
+
         if not (1 <= int(valutazione) <= 5):
             raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
 
@@ -230,7 +251,6 @@ class GestoreStanza:
 
     @staticmethod
     def visualizzaRecensioni(annuncio_id):
-        """RF-27: Tutte le recensioni di un annuncio."""
         associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id).all()
         recensioni = [a.recensione for a in associazioni if a.recensione is not None]
         return recensioni
@@ -238,7 +258,13 @@ class GestoreStanza:
     @staticmethod
     def modificaRecensione(recensione_id, studente_id, titolo, descrizione, valutazione):
 
-        recensione = Recensione.query.get_or_404(recensione_id)
+        recensione = Recensione.query.get(recensione_id)
+
+        if not recensione:
+            raise ("Recensione non trovata")
+
+        if not titolo or not descrizione or not valutazione:
+            raise ValueError("Compila tutti i campi")
 
         if recensione.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a modificare questa recensione.")
@@ -254,8 +280,10 @@ class GestoreStanza:
 
     @staticmethod
     def eliminaRecensione(recensione_id, studente_id):
+        recensione = Recensione.query.get(recensione_id)
 
-        recensione = Recensione.query.get_or_404(recensione_id)
+        if not recensione:
+            raise ("Recensione non trovata")
 
         if recensione.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a eliminare questa recensione.")
@@ -269,3 +297,7 @@ class GestoreStanza:
         if not recensioni:
             return None
         return round(sum(r.valutazione for r in recensioni) / len(recensioni), 1)
+
+    @staticmethod
+    def getRecensioneById(id):
+        return db.session.get(Recensione,id)

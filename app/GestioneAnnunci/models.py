@@ -1,3 +1,5 @@
+from sqlalchemy.orm import backref
+
 from app import db
 from datetime import datetime,timezone
 
@@ -31,11 +33,11 @@ class AnnuncioStanza(db.Model):
     visibile = db.Column(db.Boolean, default=True) 
     data_pubblicazione = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     
-    # Chiave Esterna: il locatore che crea l'annuncio
     locatore_id = db.Column(db.Integer, db.ForeignKey('locatore.id'), nullable=False)
     
     # Relazione 1-a-Molti con FotoAnnuncio
     foto = db.relationship('FotoAnnuncio', backref='annuncio', lazy=True, cascade="all, delete-orphan")
+
 
 
 class Servizio(db.Model):
