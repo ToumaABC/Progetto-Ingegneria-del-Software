@@ -2,9 +2,8 @@ from flask import render_template, request, redirect, url_for, flash, current_ap
 from flask_login import login_user, logout_user, login_required, current_user
 from app.GestioneUtente import gestione_utente_bp
 from app.GestioneUtente.gestore_utente import GestoreUtente
-from app import db,mail
+from app import db, mail
 
-gestore_utente = GestoreUtente(db,mail)
 
 @gestione_utente_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -14,6 +13,7 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        gestore_utente = GestoreUtente(db, mail)
         try:
             utente = gestore_utente.login(email, password)
             login_user(utente)
@@ -28,7 +28,9 @@ def login():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('gestione_annunci.index'))
+        
     if request.method == 'POST':
+        gestore_utente = GestoreUtente(db, mail)
         try:
             gestore_utente.registrazioneUtente(request.form.to_dict())
             flash('Registrazione completata! Controlla la tua email per verificare l\'account.', 'success')
@@ -49,6 +51,7 @@ def logout():
 
 @gestione_utente_bp.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
+    gestore_utente = GestoreUtente(db, mail)
     try:
         gestore_utente.verificaEmail(token)
         flash('Account verificato con successo! Benvenuto in UniAlloggi, ora puoi effettuare il login.', 'success')
@@ -62,6 +65,7 @@ def verify_email(token):
 @login_required
 def modifica_profilo():
     if request.method == 'POST':
+        gestore_utente = GestoreUtente(db, mail)
         try:
             gestore_utente.modificaProfilo(current_user, request.form)
             flash('Profilo aggiornato correttamente.', 'success')
@@ -75,6 +79,7 @@ def modifica_profilo():
 @gestione_utente_bp.route('/profilo/elimina', methods=['POST'])
 @login_required
 def elimina_account():
+    gestore_utente = GestoreUtente(db, mail)
     try:
         gestore_utente.eliminaProfilo(current_user.id)
     except ValueError as e:
@@ -94,6 +99,7 @@ def forgot_password():
         
     if request.method == 'POST':
         email = request.form.get('email')
+        gestore_utente = GestoreUtente(db, mail)
         try:
             gestore_utente.recuperaPassword(email)
             flash('Una nuova password è stata generata e inviata al tuo indirizzo email.', 'success')
@@ -104,13 +110,12 @@ def forgot_password():
     return render_template('gestione_utente/forgot_password.html')
 
 
-
 @gestione_utente_bp.route('/profilo', defaults={'id': None}, methods=['GET'])
 @gestione_utente_bp.route('/profilo/<int:id>', methods=['GET'])
 @login_required
 def profilo(id):
-
     target_id = id if id is not None else current_user.id
+    gestore_utente = GestoreUtente(db, mail)
     
     try:
         utente_da_visualizzare = gestore_utente.visualizzaProfilo(target_id)
