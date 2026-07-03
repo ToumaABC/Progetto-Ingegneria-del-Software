@@ -5,17 +5,15 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>I miei Ticket</h2>
   </div>
-    {% if annunci_associati %}
     <div class="mt-4">
       <h5>Apri un nuovo ticket per:</h5>
-      {% for annuncio in annunci_associati %}
+      {% if annuncio %}
         <a href="{{ url_for('gestione_stanza.nuovo_ticket', annuncio_id=annuncio.id) }}"
            class="btn btn-primary me-2 mb-2">
           {{ annuncio.indirizzo }}
         </a>
-      {% endfor %}
+      {% endif %}
     </div>
-  {% endif %}
   {% if tickets %}
     <div class="list-group">
       {% for ticket in tickets %}
@@ -65,13 +63,16 @@
                 <span class="badge bg-success mb-2 d-block">Chiuso</span>
               {% endif %}
 
+            {% if ticket.stato.value == "aperto" %}
+
               <a href="{{ url_for('gestione_stanza.modifica_ticket', ticket_id=ticket.id) }}"
                  class="btn btn-sm btn-outline-primary me-1">Modifica</a>
+            {% endif %}
 
               <form action="{{ url_for('gestione_stanza.elimina_ticket', ticket_id=ticket.id) }}"
                     method="POST" class="d-inline"
                     onsubmit="return confirm('Vuoi eliminare questo ticket?')">
-                {% if ticket.stato.value == 'aperto' %}
+                {% if ticket.stato.value == "aperto" or ticket.stato.value == "chiuso" %}
                   <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
                {% endif %}
               </form>

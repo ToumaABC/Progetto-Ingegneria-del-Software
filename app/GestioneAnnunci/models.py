@@ -1,4 +1,3 @@
-from sqlalchemy.orm import backref
 
 from app import db
 from datetime import datetime,timezone
@@ -31,7 +30,7 @@ class AnnuncioStanza(db.Model):
     costo = db.Column(db.Float, nullable=False)
     
     visibile = db.Column(db.Boolean, default=True) 
-    data_pubblicazione = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    data_pubblicazione = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     locatore_id = db.Column(db.Integer, db.ForeignKey('locatore.id'), nullable=False)
     

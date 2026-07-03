@@ -1,11 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from app.GestioneAnnunci.gestore_annunci import GestoreAnnunci
-from app.GestioneAnnunci.models import AnnuncioStanza
 from app.GestioneAnnunci import gestione_annunci_bp
-from app.GestioneUtente.gestore_utente import GestoreUtente
-from app.GestioneStanza.gestore_stanza import GestoreStanza
-
 
 
 @gestione_annunci_bp.route("/aggiungi_annuncio", methods=["GET", "POST"])
@@ -17,7 +12,7 @@ def aggiungi_annuncio():
 
     if request.method == "POST":
         try:
-            GestoreAnnunci.aggiungiAnnuncio(
+            current_app.gestore_annunci.aggiungiAnnuncio(
                 dati=request.form.to_dict(),
                 servizi = request.form.getlist("servizi"),
                 file_foto=request.files.getlist("foto"), 
@@ -28,7 +23,7 @@ def aggiungi_annuncio():
         except ValueError as e:
             flash(str(e), "danger")
 
-    servizi_disponibili = GestoreAnnunci.get_lista_servizi()
+    servizi_disponibili = current_app.gestore_annunci.getListaServizi()
     return render_template("gestione_annunci/aggiungi_annuncio.html", servizi=servizi_disponibili)
 
 
@@ -38,11 +33,11 @@ def modifica_annuncio(id):
 
     #verifico che l"annuncio esista e l"utente sia il proprietario dell annuncio 
     try:
-        annuncio = GestoreAnnunci.verifica_proprieta_annuncio(id, current_user.id)
+        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(id, current_user.id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("gestione_annunci.index"))
-    servizi_disponibili = GestoreAnnunci.get_lista_servizi()
+    servizi_disponibili = current_app.gestore_annunci.getListaServizi()
 
     if request.method == "POST":
 
@@ -53,7 +48,7 @@ def modifica_annuncio(id):
         nuove_foto = request.files.getlist("nuove_foto")
 
         try:
-            GestoreAnnunci.modificaAnnuncio(
+            current_app.gestore_annunci.modificaAnnuncio(
                 annuncio=annuncio,
                 dati=request.form.to_dict(),
                 servizi = request.form.getlist("servizi"),
@@ -74,7 +69,7 @@ def modifica_annuncio(id):
 @login_required
 def elimina_annuncio(id):
     try:
-        GestoreAnnunci.eliminaAnnuncio(id,current_user.id)
+        current_app.gestore_annunci.eliminaAnnuncio(id,current_user.id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("gestione_annunci.miei_annunci"))
@@ -86,12 +81,12 @@ def elimina_annuncio(id):
 @login_required
 def visibilita_annuncio(id):
     try:
-        annuncio = GestoreAnnunci.verifica_proprieta_annuncio(id, current_user.id)
+        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(id, current_user.id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("gestione_annunci.index"))    
     
-    nuovo_stato = GestoreAnnunci.cambiaVisibilita(annuncio)
+    nuovo_stato = current_app.gestore_annunci.cambiaVisibilita(annuncio)
     stato_str = "reso visibile" if nuovo_stato else "nascosto"
     flash(f"L\"annuncio è stato {stato_str}.", "info")
         
@@ -103,7 +98,7 @@ def visibilita_annuncio(id):
 def miei_annunci():
     if current_user.ruolo != "locatore":
         flash("Accesso consentito solo ai locatori.", "danger")
-        return redirect(url_for("index"))
+        return redirect(url_for("gestione_annunci.index"))
     
     return render_template("gestione_annunci/miei_annunci.html", annunci=current_user.annunci)
 
@@ -116,8 +111,8 @@ def index():
     servizi_selezionati = request.args.getlist("servizi")
 
     # Chiamiamo la funzione Base del Gestore
-    annunci = GestoreAnnunci.ricerca_annunci(query_testo=query_testo, prezzo_max=prezzo_max, servizi_selezionati=servizi_selezionati)
-    servizi = GestoreAnnunci.get_lista_servizi()
+    annunci = current_app.gestore_annunci.ricerca_annunci(query_testo=query_testo, prezzo_max=prezzo_max, servizi_selezionati=servizi_selezionati)
+    servizi = current_app.gestore_annunci.getListaServizi()
     annunci_salvati_ids=[]
     if current_user.is_authenticated and current_user.ruolo == "studente":
         annunci_salvati_ids = [a.id for a in current_user.get_lista_annunci_salvati()]
@@ -129,7 +124,7 @@ def index():
 def visualizza_annuncio(id):
 
     try:
-        result = GestoreAnnunci.visualizza_annuncio(id)
+        result = current_app.gestore_annunci.visualizza_annuncio(id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("gestione_annunci.index"))
@@ -160,7 +155,7 @@ def salva_annuncio(id):
         return redirect(request.referrer or url_for("gestione_annunci.index"))
     
     try:
-        GestoreAnnunci.salvaAnnuncio(studente_id=current_user.id, annuncio_id=id)
+        current_app.gestore_annunci.salvaAnnuncio(studente_id=current_user.id, annuncio_id=id)
         flash("Annuncio salvato nei preferiti!", "success")
     except ValueError as e:
         flash(str(e), "danger")
@@ -175,7 +170,7 @@ def rimuovi_salvato(id):
         return redirect(url_for("gestione_annunci.index"))
     
     try:
-        GestoreAnnunci.eliminaAnnuncioSalvato(studente_id=current_user.id, annuncio_id=id)
+        current_app.gestore_annunci.eliminaAnnuncioSalvato(studente_id=current_user.id, annuncio_id=id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(request.referrer or url_for("gestione_annunci.annunci_salvati"))

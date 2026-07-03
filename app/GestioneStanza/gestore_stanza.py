@@ -1,14 +1,15 @@
-from app import db
 from app.GestioneStanza.models import AssociazioneStudenteStanza,StatoTicket,Ticket, Recensione
-from app.GestioneUtente.gestore_utente import GestoreUtente
 from app.GestioneFoto.models import FotoTicket
 from app.GestioneFoto.gestore_foto import GestoreFoto
 
 class GestoreStanza:
 
-    @staticmethod
-    def associaStudente(annuncio_id, email_studente):
-        studente = GestoreUtente.cercaStudentePerEmail(email_studente)
+    def __init__(self,db,gestore_utente):
+        self.db = db
+        self.gestore_utente = gestore_utente
+    
+    def associaStudente(self,annuncio_id, email_studente):
+        studente = self.gestore_utente.cercaStudentePerEmail(email_studente)
         
         if not studente:
             raise ValueError("Nessuno studente trovato con questa email.")
@@ -20,7 +21,7 @@ class GestoreStanza:
         associazione_disattivata = AssociazioneStudenteStanza.query.filter_by(studente_id=studente.id,annuncio_id=annuncio_id, attiva=False).first()
         if associazione_disattivata:
             associazione_disattivata.attiva = True
-            db.session.commit()
+            self.db.session.commit()
             return associazione_disattivata
 
         nuova_associazione = AssociazioneStudenteStanza(
@@ -28,17 +29,15 @@ class GestoreStanza:
             studente_id=studente.id,
             attiva=True
         )
-        db.session.add(nuova_associazione)
-        db.session.commit()
+        self.db.session.add(nuova_associazione)
+        self.db.session.commit()
         return nuova_associazione
 
-    @staticmethod
-    def visualizzaInquilini(annuncio_id):
+    def visualizzaInquilini(self,annuncio_id):
         associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id, attiva=True).all()
         return associazioni
     
-    @staticmethod
-    def annullaAssociazione(annuncio_id, studente_id):
+    def annullaAssociazione(self,annuncio_id, studente_id):
         associazione = AssociazioneStudenteStanza.query.filter_by(
             annuncio_id=annuncio_id, 
             studente_id=studente_id,
@@ -50,11 +49,9 @@ class GestoreStanza:
         
         associazione.attiva = False
 
-        db.session.commit()
+        self.db.session.commit()
 
-
-    @staticmethod
-    def get_associazione_attiva(annuncio_id, studente_id):
+    def get_associazione_attiva(self,annuncio_id, studente_id):
         associazione = AssociazioneStudenteStanza.query.filter_by(
             annuncio_id=annuncio_id,
             studente_id=studente_id,
@@ -64,9 +61,8 @@ class GestoreStanza:
             raise ValueError("Non sei associato a questa stanza.")
         return associazione
 
-    @staticmethod
-    def nuovoTicket(annuncio_id, studente_id, titolo, descrizione,files=None):
-        associazione = GestoreStanza.get_associazione_attiva(annuncio_id, studente_id)
+    def nuovoTicket(self,annuncio_id, studente_id, titolo, descrizione,files=None):
+        associazione = self.get_associazione_attiva(annuncio_id, studente_id)
 
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione.")
@@ -77,34 +73,32 @@ class GestoreStanza:
             stato=StatoTicket.APERTO,
             associazione_id=associazione.id
         )
-        db.session.add(ticket)
+        self.db.session.add(ticket)
 
-        db.session.flush()  
+        self.db.session.flush()  
 
         for file in files:
             if file and file.filename != '':
                 try:
                     percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket.id)
                 except:
-                    db.session.rollback()
+                    self.db.session.rollback()
                     raise
                 if percorso:
                     foto = FotoTicket(percorso_file=percorso, ticket_id=ticket.id)
-                    db.session.add(foto)
+                    self.db.session.add(foto)
 
-        db.session.commit()
+        self.db.session.commit()
         return ticket
 
-    @staticmethod
-    def visualizzaTicketStudente(studente_id):
+    def visualizzaTicketStudente(self,studente_id):
         associazioni = AssociazioneStudenteStanza.query.filter_by(studente_id=studente_id).all()
         tickets = []
         for a in associazioni:
             tickets.extend(a.tickets)
         return tickets
 
-    @staticmethod
-    def visualizzaTicketLocatore(annuncio_id):
+    def visualizzaTicketLocatore(self,annuncio_id):
         """Tutti i ticket relativi a un annuncio del locatore."""
         associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id).all()
         tickets = []
@@ -112,12 +106,14 @@ class GestoreStanza:
             tickets.extend(a.tickets)
         return tickets
 
-    @staticmethod
-    def modificaTicket(ticket_id, studente_id, titolo, descrizione,foto_da_aggiungere=None,foto_da_eliminare=None):
+    def modificaTicket(self,ticket_id, studente_id, titolo, descrizione,foto_da_aggiungere=None,foto_da_eliminare=None):
         ticket = Ticket.query.get(ticket_id)
 
         if not ticket:
             raise ValueError("Ticket non esiste.")
+
+        if ticket.stato == StatoTicket.IN_LAVORAZIONE or ticket.stato == StatoTicket.CHIUSO:
+            raise ValueError("Impossibile modificare un ticket in lavorazione o chiuso")
 
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione")
@@ -125,51 +121,39 @@ class GestoreStanza:
         if ticket.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a modificare questo ticket.")
 
-        if foto_da_eliminare:
-            for foto_id in foto_da_eliminare:
-                foto_check = FotoTicket.query.get(foto_id)
-                if foto_check and foto_check.ticket_id == ticket.id:
-                    print("AA") 
-                    GestoreFoto.elimina_foto_db(foto_check)
-
-
         ticket.titolo = titolo
         ticket.descrizione = descrizione
         if foto_da_aggiungere:
             for file in foto_da_aggiungere:
                 if file and file.filename != '':
-                    try:
-                        percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket_id)
-                    except:
-                        raise
+                    percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket_id)
                     if percorso:
                         foto = FotoTicket(percorso_file=percorso, ticket_id=ticket_id)
-                        db.session.add(foto)
+                        self.db.session.add(foto)
 
-        db.session.commit()
+        if foto_da_eliminare:
+            for foto_id in foto_da_eliminare:
+                foto_check = FotoTicket.query.get(foto_id)
+                if foto_check and foto_check.ticket_id == ticket.id:
+                    GestoreFoto.elimina_file_fisico(foto_check.percorso_file)
+                    self.db.session.delete(foto_check)
+
+        self.db.session.commit()
         return ticket
 
-    @staticmethod
-    def eliminaTicket(ticket_id, studente_id):
-        ticket = Ticket.query.get(ticket_id)
-
-        if not ticket:
-            raise ValueError("Ticket non esiste.")
-
-        if ticket.associazione.studente_id != studente_id:
-            raise ValueError("Non sei autorizzato a eliminare questo ticket.")
+    def eliminaTicket(self,ticket_id, studente_id):
+        ticket = self.verificaPropritaTicket(ticket_id,studente_id)
     
-        if ticket.stato != StatoTicket.APERTO:
+        if ticket.stato == StatoTicket.IN_LAVORAZIONE :
             raise ValueError("Non è possibile eliminare un ticket in lavorazione o chiuso.")
 
 
         for foto in ticket.foto:
             GestoreFoto.elimina_file_fisico(foto.percorso_file)
-        db.session.delete(ticket)
-        db.session.commit()
+        self.db.session.delete(ticket)
+        self.db.session.commit()
 
-    @staticmethod
-    def aggiornaStatoTicket(ticket_id, locatore_id):
+    def aggiornaStatoTicket(self,ticket_id, locatore_id):
         ticket = Ticket.query.get(ticket_id)
 
         if not ticket:
@@ -186,49 +170,12 @@ class GestoreStanza:
         else:
             raise ValueError("Il ticket è già chiuso.")
 
-        db.session.commit()
+        self.db.session.commit()
         return ticket
-    
-
-    @staticmethod
-    def aggiungiFotoTicket(ticket_id, studente_id, files):
-        """Salva una o più foto per un ticket."""
 
 
-        ticket = Ticket.query.get_or_404(ticket_id)
-
-        if ticket.associazione.studente_id != studente_id:
-            raise ValueError("Non sei autorizzato ad aggiungere foto a questo ticket.")
-
-        foto_salvate = []
-        for file in files:
-            if file and file.filename != '':
-                percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket_id)
-                if percorso:
-                    foto = FotoTicket(percorso_file=percorso, ticket_id=ticket_id)
-                    db.session.add(foto)
-                    foto_salvate.append(foto)
-
-        db.session.commit()
-        return foto_salvate
-
-    @staticmethod
-    def eliminaFotoTicket(foto_id, studente_id):
-        from app.GestioneFoto.models import FotoTicket
-        from app.GestioneFoto.gestore_foto import GestoreFoto
-
-        foto = FotoTicket.query.get_or_404(foto_id)
-
-        if foto.ticket.associazione.studente_id != studente_id:
-            raise ValueError("Non sei autorizzato a eliminare questa foto.")
-
-        GestoreFoto.elimina_file_fisico(foto.percorso_file)
-        db.session.delete(foto)
-        db.session.commit()
-
-    @staticmethod
-    def aggiungiRecensione(annuncio_id, studente_id, titolo, descrizione, valutazione):
-        associazione = GestoreStanza.get_associazione_attiva(annuncio_id, studente_id)
+    def aggiungiRecensione(self,annuncio_id, studente_id, titolo, descrizione, valutazione):
+        associazione = self.get_associazione_attiva(annuncio_id, studente_id)
 
         if associazione.recensione:
             raise ValueError("Hai già pubblicato una recensione per questa stanza.")
@@ -245,23 +192,21 @@ class GestoreStanza:
             valutazione=int(valutazione),
             associazione_id=associazione.id
         )
-        db.session.add(recensione)
-        db.session.commit()
+        self.db.session.add(recensione)
+        self.db.session.commit()
         return recensione
 
-    @staticmethod
-    def visualizzaRecensioni(annuncio_id):
+    def visualizzaRecensioni(self,annuncio_id):
         associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id).all()
         recensioni = [a.recensione for a in associazioni if a.recensione is not None]
         return recensioni
 
-    @staticmethod
-    def modificaRecensione(recensione_id, studente_id, titolo, descrizione, valutazione):
+    def modificaRecensione(self,recensione_id, studente_id, titolo, descrizione, valutazione):
 
         recensione = Recensione.query.get(recensione_id)
 
         if not recensione:
-            raise ("Recensione non trovata")
+            raise ValueError("Recensione non trovata")
 
         if not titolo or not descrizione or not valutazione:
             raise ValueError("Compila tutti i campi")
@@ -275,29 +220,36 @@ class GestoreStanza:
         recensione.titolo = titolo
         recensione.descrizione = descrizione
         recensione.valutazione = int(valutazione)
-        db.session.commit()
+        self.db.session.commit()
         return recensione
 
-    @staticmethod
-    def eliminaRecensione(recensione_id, studente_id):
+    def eliminaRecensione(self,recensione_id, studente_id):
         recensione = Recensione.query.get(recensione_id)
 
         if not recensione:
-            raise ("Recensione non trovata")
+            raise ValueError    ("Recensione non trovata")
 
         if recensione.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a eliminare questa recensione.")
 
-        db.session.delete(recensione)
-        db.session.commit()
+        self.db.session.delete(recensione)
+        self.db.session.commit()
 
-    @staticmethod
-    def calcolaValutazioneMedia(annuncio_id):
-        recensioni = GestoreStanza.visualizzaRecensioni(annuncio_id)
+    def calcolaValutazioneMedia(self,annuncio_id):
+        recensioni = self.visualizzaRecensioni(annuncio_id)
         if not recensioni:
             return None
         return round(sum(r.valutazione for r in recensioni) / len(recensioni), 1)
 
-    @staticmethod
-    def getRecensioneById(id):
-        return db.session.get(Recensione,id)
+    def getRecensioneById(self,id):
+        return self.db.session.get(Recensione,id)
+
+    def verificaPropritaTicket(self,ticket_id, user_id):
+        ticket = self.db.session.get(Ticket, ticket_id)
+        if not ticket:
+            raise ValueError("Ticket non trovata")
+
+        if ticket.associazione.studente_id != user_id:
+            raise ValueError("Non puoi modificare un ticket non tuo")
+
+        return ticket

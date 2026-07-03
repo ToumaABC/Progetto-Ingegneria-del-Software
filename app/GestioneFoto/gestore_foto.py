@@ -1,6 +1,5 @@
 import os
 from flask import current_app
-from app import db
 
 class GestoreFoto:
     
@@ -41,22 +40,9 @@ class GestoreFoto:
 
     @staticmethod
     def elimina_file_fisico(percorso_relativo):
-        """Elimina il file fisico dal disco del server."""
         if not percorso_relativo:
             return
-            
         percorso_assoluto = os.path.join(current_app.root_path, 'static', percorso_relativo)
         if os.path.exists(percorso_assoluto):
-            try:
-                os.remove(percorso_assoluto)
-            except Exception as e:
-                print(f"Errore eliminazione file fisico: {e}")
+            os.remove(percorso_assoluto)
 
-    @staticmethod
-    def elimina_foto_db(foto_obj):
-        if foto_obj and hasattr(foto_obj, 'percorso_file'):
-            # 1. Elimina il file fisico
-            GestoreFoto.elimina_file_fisico(foto_obj.percorso_file)
-            
-            # 2. Elimina il record dal Database
-            db.session.delete(foto_obj)

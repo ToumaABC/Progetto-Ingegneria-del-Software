@@ -1,20 +1,17 @@
-import os
-from idlelib import query
-
-from flask import current_app
-from werkzeug.utils import secure_filename
-from app import db
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioServizio, AnnuncioSalvato
 from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
-from app.GestioneStanza.gestore_stanza import GestoreStanza
-from app.GestioneUtente.gestore_utente import GestoreUtente
 
 
 class GestoreAnnunci:
 
-    @staticmethod
-    def aggiungiAnnuncio(dati, servizi, file_foto, locatore_id):
+
+    def __init__(self, db,gestore_utente,gestore_stanza):
+        self.db = db
+        self.gestore_utente = gestore_utente
+        self.gestore_stanza = gestore_stanza
+
+    def aggiungiAnnuncio(self,dati, servizi, file_foto, locatore_id):
         titolo = dati.get("titolo")
         indirizzo = dati.get("indirizzo")
         descrizione = dati.get("descrizione")
@@ -31,9 +28,9 @@ class GestoreAnnunci:
             costo=float(costo),
             locatore_id=locatore_id
         )
-        db.session.add(nuovo_annuncio)
+        self.db.session.add(nuovo_annuncio)
         #Faccio il flush per ottenere l"id dell"annuncio
-        db.session.flush() 
+        self.db.session.flush()
 
         # Gestione Servizi
         servizi_selezionati = servizi
@@ -41,7 +38,7 @@ class GestoreAnnunci:
             servizio = Servizio.query.get(serv_id)
             if servizio:
                 annuncio_servizio = AnnuncioServizio(annuncio_id=nuovo_annuncio.id, servizio_id=servizio.id)
-                db.session.add(annuncio_servizio)
+                self.db.session.add(annuncio_servizio)
 
         # Gestione Foto
         if not file_foto or file_foto[0].filename == "":
@@ -52,13 +49,12 @@ class GestoreAnnunci:
             percorso = GestoreFoto.salva_file_fisico(file, "annunci", "annuncio", nuovo_annuncio.id)
             if percorso:
                 nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=nuovo_annuncio.id)
-                db.session.add(nuova_foto)
+                self.db.session.add(nuova_foto)
 
-        db.session.commit()
+        self.db.session.commit()
         return nuovo_annuncio
 
-    @staticmethod
-    def modificaAnnuncio(annuncio, servizi, dati, file_foto=None, foto_da_eliminare=None):
+    def modificaAnnuncio(self,annuncio, servizi, dati, file_foto=None, foto_da_eliminare=None):
 
         # 1. Aggiornamento dei campi testuali
         annuncio.titolo = dati.get("titolo", annuncio.titolo)
@@ -69,18 +65,20 @@ class GestoreAnnunci:
         if costo:
             annuncio.costo = float(costo)
 
-        if foto_da_eliminare:
-            for foto_id in foto_da_eliminare:
-                foto_check = FotoAnnuncio.query.get(foto_id)
-                if foto_check and foto_check.annuncio_id == annuncio.id:
-                    GestoreFoto.elimina_foto_db(foto_check)
 
         if file_foto:
             for file in file_foto:
                 percorso = GestoreFoto.salva_file_fisico(file, sotto_cartella="annunci", prefisso_nome="annuncio", id_entita=annuncio.id)
                 if percorso:
                     nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=annuncio.id)
-                    db.session.add(nuova_foto)
+                    self.db.session.add(nuova_foto)
+
+        if foto_da_eliminare:
+            for foto_id in foto_da_eliminare:
+                foto_check = FotoAnnuncio.query.get(foto_id)
+                if foto_check and foto_check.annuncio_id == annuncio.id:
+                    GestoreFoto.elimina_file_fisico(foto_check.percorso_file)
+                    self.db.session.delete(foto_check)
 
         servizi_selezionati = servizi
         AnnuncioServizio.query.filter_by(annuncio_id=annuncio.id).delete()
@@ -88,36 +86,32 @@ class GestoreAnnunci:
             servizio = Servizio.query.get(serv_id)
             if servizio:
                 annuncio_servizio = AnnuncioServizio(annuncio_id=annuncio.id, servizio_id=servizio.id)
-                db.session.add(annuncio_servizio)
+                self.db.session.add(annuncio_servizio)
 
-        db.session.commit()
+        self.db.session.commit()
 
-    @staticmethod
-    def eliminaAnnuncio(annuncio_id,user_id):
-        annuncio = GestoreAnnunci.verifica_proprieta_annuncio(annuncio_id, user_id)
+    def eliminaAnnuncio(self,annuncio_id,user_id):
+        annuncio = self.verificaProprietaAnnuncio(annuncio_id, user_id)
         for foto in annuncio.foto:
             GestoreFoto.elimina_file_fisico(foto.percorso_file)
-        db.session.delete(annuncio)
-        db.session.commit()
+        self.db.session.delete(annuncio)
+        self.db.session.commit()
 
-    @staticmethod
-    def cambiaVisibilita(annuncio):
+    def cambiaVisibilita(self,annuncio):
         if not annuncio:
             raise ValueError("Annuncio non trovato.")
         annuncio.visibile = not annuncio.visibile
-        db.session.commit()
+        self.db.session.commit()
         return annuncio.visibile
 
-    @staticmethod
-    def visualizza_annuncio(id_annuncio):
-        try:
-            annuncio = db.session.get(AnnuncioStanza, id_annuncio)
-        except:
+    def visualizza_annuncio(self,id_annuncio):
+        annuncio = self.db.session.get(AnnuncioStanza, id_annuncio)
+        if not annuncio:
             raise ValueError("Annuncio non trovato.")
-        locatore = GestoreUtente.visualizzaProfilo(annuncio.locatore_id)
-        inquilini = GestoreStanza.visualizzaInquilini(id_annuncio)
-        recensioni = GestoreStanza.visualizzaRecensioni(id_annuncio)
-        media_voto = GestoreStanza.calcolaValutazioneMedia(id_annuncio)
+        locatore = self.gestore_utente.visualizzaProfilo(annuncio.locatore_id)
+        inquilini = self.gestore_stanza.visualizzaInquilini(id_annuncio)
+        recensioni = self.gestore_stanza.visualizzaRecensioni(id_annuncio)
+        media_voto = self.gestore_stanza.calcolaValutazioneMedia(id_annuncio)
 
         return {
             "annuncio": annuncio,
@@ -127,10 +121,7 @@ class GestoreAnnunci:
             "media_voto": media_voto
         }
 
-
-
-    @staticmethod
-    def ricerca_annunci(query_testo=None, prezzo_max=None, servizi_selezionati=None):
+    def ricerca_annunci(self,query_testo=None, prezzo_max=None, servizi_selezionati=None):
 
         annunci = AnnuncioStanza.query.filter_by(visibile=True)
 
@@ -138,7 +129,7 @@ class GestoreAnnunci:
         if query_testo:
             search = f"%{query_testo}%"
             annunci = annunci.filter(
-                db.or_(
+                self.db.or_(
                     AnnuncioStanza.indirizzo.ilike(search),
                     AnnuncioStanza.titolo.ilike(search),
                     AnnuncioStanza.descrizione.ilike(search)
@@ -147,16 +138,15 @@ class GestoreAnnunci:
 
         # Punto di estensione se ci sono filtri
         if prezzo_max or servizi_selezionati:
-            annunci = GestoreAnnunci.filtra_annunci(annunci, prezzo_max,servizi_selezionati)
+            annunci = self.filtra_annunci(annunci, prezzo_max,servizi_selezionati)
             
         return annunci.all()
 
-    @staticmethod
-    def filtra_annunci(l_annunci, prezzo_max=None, servizi_selezionati=None):
+    def filtra_annunci(self,l_annunci, prezzo_max=None, servizi_selezionati=None):
         try:
             prezzo = float(prezzo_max)
             l_annunci = l_annunci.filter(AnnuncioStanza.costo <= prezzo)
-        except ValueError:
+        except TypeError:
             pass # Se il valore non è numerico, restituisce la query inalterata
         
         if servizi_selezionati:
@@ -164,39 +154,34 @@ class GestoreAnnunci:
             for serv_id in servizi_selezionati:
                 try:
                     id_serv = int(serv_id)
-                    subquery = db.session.query(AnnuncioServizio.annuncio_id).filter(AnnuncioServizio.servizio_id == id_serv)
+                    subquery = self.db.session.query(AnnuncioServizio.annuncio_id).filter(AnnuncioServizio.servizio_id == id_serv)
                     l_annunci = l_annunci.filter(AnnuncioStanza.id.in_(subquery))
                 except ValueError:
                     pass
                 
         return l_annunci
-    
-    @staticmethod
-    def salvaAnnuncio(studente_id, annuncio_id):
+
+    def salvaAnnuncio(self,studente_id, annuncio_id):
         if not AnnuncioStanza.query.get(annuncio_id) :
             raise ValueError("Annuncio non trovato.")
         salvataggio_esistente = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
         if salvataggio_esistente:
             raise ValueError("Hai già salvato questo annuncio.")
         nuovo_salvataggio = AnnuncioSalvato(studente_id=studente_id, annuncio_id=annuncio_id)
-        db.session.add(nuovo_salvataggio)
-        db.session.commit()
+        self.db.session.add(nuovo_salvataggio)
+        self.db.session.commit()
 
-    @staticmethod
-    def eliminaAnnuncioSalvato(studente_id, annuncio_id):
+    def eliminaAnnuncioSalvato(self,studente_id, annuncio_id):
         salvataggio = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
         if not salvataggio:
             raise ValueError("Non puoi rimuovere un annuncio non salvato ")
-        db.session.delete(salvataggio)
-        db.session.commit()
+        self.db.session.delete(salvataggio)
+        self.db.session.commit()
 
-
-    @staticmethod
-    def get_lista_servizi():
+    def getListaServizi(self):
         return Servizio.query.all()
-    
-    @staticmethod
-    def verifica_proprieta_annuncio(annuncio_id, utente_id):
+
+    def verificaProprietaAnnuncio(self, annuncio_id, utente_id):
         annuncio = AnnuncioStanza.query.get(annuncio_id)
         if not annuncio:
             raise ValueError("Annuncio non trovato.")

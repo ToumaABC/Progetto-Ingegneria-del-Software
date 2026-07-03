@@ -9,3 +9,4 @@ app/GestioneFoto/__pycache__/
 tests/__pycache__/
 app/static/
 popola_db.py
+.idea

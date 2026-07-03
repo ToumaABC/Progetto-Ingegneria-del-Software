@@ -4,6 +4,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
+
+
+
 load_dotenv()
 
 db = SQLAlchemy()
@@ -30,6 +33,17 @@ def create_app():
     login_manager.init_app(app)
     mail.init_app(app)
 
+    from app.GestioneAnnunci.gestore_annunci import GestoreAnnunci
+    from app.GestioneStanza.gestore_stanza import GestoreStanza
+    from app.GestioneUtente.gestore_utente import GestoreUtente
+
+    gestore_utente = GestoreUtente(db, mail)
+    gestore_stanza = GestoreStanza(db, gestore_utente)
+    gestore_annunci = GestoreAnnunci(db, gestore_utente, gestore_stanza)
+
+    app.gestore_utente = gestore_utente
+    app.gestore_stanza = gestore_stanza
+    app.gestore_annunci = gestore_annunci
 
     login_manager.login_view = 'gestione_utente.login'
 
@@ -66,4 +80,7 @@ def create_app():
             db.session.commit()
 
 
+
     return app
+
+

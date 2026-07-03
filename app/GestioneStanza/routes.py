@@ -1,27 +1,22 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash,current_app
 from flask_login import login_required, current_user
 from app.GestioneStanza import gestione_stanza_bp
-from app.GestioneStanza.gestore_stanza import GestoreStanza
-from app.GestioneAnnunci.models import AnnuncioStanza
-from app.GestioneStanza.models import AssociazioneStudenteStanza, Recensione
-from app.GestioneStanza.gestore_stanza import Ticket
+
 
 
 
 @gestione_stanza_bp.route('/annuncio/<int:id>/associa', methods=['POST'])
 @login_required
 def associa_studente(id):
-
-    """Da Sistemare in un metodo"""
-    annuncio = AnnuncioStanza.query.get_or_404(id)
-
-    if annuncio.locatore_id != current_user.id:
-        flash("Non sei autorizzato a modificare questo annuncio.", "danger")
-        return redirect(url_for('gestione_annunci.miei_annunci', id=id))
+    try:
+        current_app.gestore_annunci.verificaProprietaAnnuncio(id,current_user.id)
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for('gestione_annunci.miei_annunci'))
 
     email = request.form.get('email_studente')
     try:
-        GestoreStanza.associaStudente(id, email)
+        current_app.gestore_stanza.associaStudente(id, email)
         flash("Studente associato con successo alla stanza!", "success")
     except ValueError as e:
         flash(str(e), "danger")
@@ -32,14 +27,18 @@ def associa_studente(id):
 @gestione_stanza_bp.route('/annuncio/<int:annuncio_id>/annulla_associazione/<int:studente_id>', methods=['POST'])
 @login_required
 def annulla_associazione(annuncio_id, studente_id):
-    annuncio = AnnuncioStanza.query.get_or_404(annuncio_id)
+    try:
+        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(id, current_user.id)
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for('gestione_annunci.miei_annunci'))
     
     if annuncio.locatore_id != current_user.id:
         flash("Non sei autorizzato a modificare questo annuncio.", "danger")
         return redirect(url_for('gestione_annunci.miei_annunci'))
         
     try:
-        GestoreStanza.annullaAssociazione(annuncio_id, studente_id)
+        current_app.gestore_stanza.annullaAssociazione(annuncio_id, studente_id)
         flash("Studente dissociato con successo dalla stanza.", "success")
     except ValueError as e:
         flash(str(e), "danger")
@@ -61,7 +60,7 @@ def nuovo_ticket(annuncio_id):
         files = request.files.getlist('foto')
 
         try:
-            GestoreStanza.nuovoTicket(annuncio_id, current_user.id, titolo, descrizione,files)
+            current_app.gestore_stanza.nuovoTicket(annuncio_id, current_user.id, titolo, descrizione,files)
             flash("Ticket aperto con successo.", "success")
             return redirect(url_for('gestione_stanza.visualizza_ticket'))
         except ValueError as e:
@@ -73,11 +72,7 @@ def nuovo_ticket(annuncio_id):
 @gestione_stanza_bp.route('/ticket/<int:ticket_id>/modifica', methods=['GET', 'POST'])
 @login_required
 def modifica_ticket(ticket_id):
-    ticket = Ticket.query.get_or_404(ticket_id)
-
-    if current_user.ruolo != 'studente':
-        flash("Solo lo studente può modificare il ticket.", "danger")
-        return redirect(url_for('gestione_stanza.visualizza_ticket'))
+    ticket = current_app.gestore_stanza.verificaPropritaTicket(ticket_id,current_user.id)
 
     if request.method == "POST":
         titolo = request.form.get("titolo", "").strip()
@@ -86,7 +81,7 @@ def modifica_ticket(ticket_id):
         foto_da_eliminare = request.form.getlist("foto_da_eliminare")
 
         try:
-            GestoreStanza.modificaTicket(ticket_id, current_user.id, titolo, descrizione, foto_da_aggiungere, foto_da_eliminare)
+            current_app.gestore_stanza.modificaTicket(ticket_id, current_user.id, titolo, descrizione, foto_da_aggiungere, foto_da_eliminare)
             flash("Ticket aggiornato con successo.", "success")
             return redirect(url_for('gestione_stanza.visualizza_ticket'))
         except ValueError as e:
@@ -99,7 +94,7 @@ def modifica_ticket(ticket_id):
 @login_required
 def elimina_ticket(ticket_id):
     try:
-        GestoreStanza.eliminaTicket(ticket_id, current_user.id)
+        current_app.gestore_stanza.eliminaTicket(ticket_id, current_user.id)
         flash("Ticket eliminato.", "success")
     except ValueError as e:
         flash(str(e), "danger")
@@ -115,7 +110,7 @@ def aggiorna_stato_ticket(ticket_id):
         return redirect(url_for('gestione_stanza.visualizza_ticket'))
 
     try:
-        GestoreStanza.aggiornaStatoTicket(ticket_id, current_user.id)
+        current_app.gestore_stanza.aggiornaStatoTicket(ticket_id, current_user.id)
         flash("Stato ticket aggiornato.", "success")
     except ValueError as e:
         flash(str(e), "danger")
@@ -127,15 +122,18 @@ def aggiorna_stato_ticket(ticket_id):
 @login_required
 def visualizza_ticket():
     if current_user.ruolo == 'studente':
-        tickets = GestoreStanza.visualizzaTicketStudente(current_user.id)
-        associazioni = AssociazioneStudenteStanza.query.filter_by(studente_id=current_user.id, attiva=True).all()
-        print(associazioni)
-        annunci_associati = [a.annuncio for a in associazioni]
-        return render_template('gestione_stanza/ticket_studente.html',tickets=tickets,annunci_associati=annunci_associati)
+        tickets = current_app.gestore_stanza.visualizzaTicketStudente(current_user.id)
+        associazione = current_user.get_associazione_attiva()
+        if associazione :
+            annuncio = associazione.annuncio
+        else:
+            annuncio = None
+
+        return render_template('gestione_stanza/ticket_studente.html',tickets=tickets,annuncio=annuncio)
     else:
-        annunci = AnnuncioStanza.query.filter_by(locatore_id=current_user.id).all()
+        annunci = current_user.annunci
         tickets_per_annuncio = {
-            a: GestoreStanza.visualizzaTicketLocatore(a.id) for a in annunci
+            a: current_app.gestore_stanza.visualizzaTicketLocatore(a.id) for a in annunci
         }
         return render_template('gestione_stanza/ticket_locatore.html',
                                tickets_per_annuncio=tickets_per_annuncio)
@@ -154,7 +152,7 @@ def nuova_recensione(annuncio_id):
         valutazione = request.form.get('valutazione', '0')
 
         try:
-            GestoreStanza.aggiungiRecensione(annuncio_id, current_user.id, titolo, descrizione, valutazione)
+            current_app.gestore_stanza.aggiungiRecensione(annuncio_id, current_user.id, titolo, descrizione, valutazione)
             flash("Recensione pubblicata con successo.", "success")
             return redirect(url_for('gestione_annunci.visualizza_annuncio', id=annuncio_id))
         except ValueError as e:
@@ -166,11 +164,11 @@ def nuova_recensione(annuncio_id):
 @gestione_stanza_bp.route('/recensione/<int:recensione_id>/modifica', methods=['GET', 'POST'])
 @login_required
 def modifica_recensione(recensione_id):
-    recensione = GestoreStanza.getRecensioneById(recensione_id)
+    recensione = current_app.gestore_stanza.getRecensioneById(recensione_id)
 
     if not recensione:
         flash("Recensione non esistente","danger")
-        return redirect(request.referrer or url_for('gestione_stanza.index'))
+        return redirect(request.referrer or url_for('gestione_annunci.index'))
 
     if current_user.ruolo != 'studente':
         flash("Non autorizzato.", "danger")
@@ -183,7 +181,7 @@ def modifica_recensione(recensione_id):
         valutazione = request.form.get('valutazione', '0')
 
         try:
-            recensione = GestoreStanza.modificaRecensione(recensione_id, current_user.id, titolo, descrizione, valutazione)
+            recensione = current_app.gestore_stanza.modificaRecensione(recensione_id, current_user.id, titolo, descrizione, valutazione)
             flash("Recensione aggiornata.", "success")
             return redirect(url_for('gestione_annunci.visualizza_annuncio', id=recensione.associazione.annuncio_id))
         except ValueError as e:
@@ -195,14 +193,14 @@ def modifica_recensione(recensione_id):
 @gestione_stanza_bp.route('/recensione/<int:recensione_id>/elimina', methods=['POST'])
 @login_required
 def elimina_recensione(recensione_id):
-    recensione = GestoreStanza.getRecensioneById(recensione_id)
+    recensione = current_app.gestore_stanza.getRecensioneById(recensione_id)
     if not recensione:
         flash("Recensione non esistente","danger")
         return redirect(request.referrer or url_for('gestione_stanza.index'))
 
     annuncio_id = recensione.associazione.annuncio_id
     try:
-        GestoreStanza.eliminaRecensione(recensione_id, current_user.id)
+        current_app.gestore_stanza.eliminaRecensione(recensione_id, current_user.id)
         flash("Recensione eliminata.", "success")
     except ValueError as e:
         flash(str(e), "danger")

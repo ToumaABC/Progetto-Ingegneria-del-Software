@@ -45,14 +45,17 @@ class Studente(Utente):
                 lista_annunci_salvati.append(salvataggio.annuncio)
         return lista_annunci_salvati
 
-    def get_associazione_attiva(self, annuncio_id):
+    def get_associazione_attiva(self):
         for associazione in self.associazioni_stanze:
-            if associazione.annuncio_id == annuncio_id and associazione.attiva:
+            if associazione.attiva:
                 return associazione
         return None
 
     def associato_alla_stanza(self, annuncio_id):
-        return self.get_associazione_attiva(annuncio_id) is not None
+        for associazione in self.associazioni_stanze:
+            if associazione.annuncio_id == annuncio_id and associazione.attiva:
+                return associazione
+        return None
 
     def ha_recensito_annuncio(self, annuncio_id):
         for associazione in self.associazioni_stanze:
