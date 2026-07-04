@@ -2,6 +2,8 @@ from flask import current_app, url_for
 import string
 import random
 from flask_mail import Message
+
+from app.GestioneFoto.gestore_foto import GestoreFoto
 from app.GestioneUtente.models import Utente, Studente, Locatore
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
@@ -102,10 +104,7 @@ class GestoreUtente:
         self.mail.send(msg)
     
     def verificaEmail(self, token):
-        try:
-            email = GestoreUtente.confermaTokenVerifica(token)
-        except:
-            raise ValueError("Il link di attivazione è invalido o è scaduto")
+        email = GestoreUtente.confermaTokenVerifica(token)
         
         if not email:
             raise ValueError("Il link di attivazione è invalido o è scaduto")
@@ -192,9 +191,31 @@ class GestoreUtente:
         utente = Utente.query.get(utente_id)
         if not utente:
             raise ValueError("Utente non trovato")
-        
+
+        percorsi_foto_da_rimuovere = []
+
+        if utente.ruolo == 'locatore':
+            for annuncio in utente.annunci:
+                for foto in annuncio.foto:
+                    percorsi_foto_da_rimuovere.append(foto.percorso_file)
+                for associazione in annuncio.associazioni:
+                    for ticket in associazione.tickets:
+                        for foto in ticket.foto:
+                            percorsi_foto_da_rimuovere.append(foto.percorso_file)
+        elif utente.ruolo == 'studente':
+            for associazione in utente.associazioni_stanze:
+                for ticket in associazione.tickets:
+                    for foto in ticket.foto:
+                        percorsi_foto_da_rimuovere.append(foto.percorso_file)
+
+
         self.db.session.delete(utente)
         self.db.session.commit()
+
+        # Le rimuovo solo dopo il commit andato a buonfine
+        for percorso in percorsi_foto_da_rimuovere:
+            GestoreFoto.elimina_file_fisico(percorso)
+
 
     @staticmethod
     def generaNuovaPassword():

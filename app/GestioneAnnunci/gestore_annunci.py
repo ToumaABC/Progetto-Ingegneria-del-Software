@@ -20,12 +20,17 @@ class GestoreAnnunci:
         if not titolo or not indirizzo or not descrizione or not costo:
             raise ValueError("Compila tutti i campi obbligatori.")
 
+        try:
+            costo_f = float(costo)
+        except ValueError:
+            raise ValueError("Il costo deve essere un numero con la virgola")
+
         # Creazione Annuncio
         nuovo_annuncio = AnnuncioStanza(
             titolo=titolo,
             indirizzo=indirizzo,
             descrizione=descrizione,
-            costo=float(costo),
+            costo=costo_f,
             locatore_id=locatore_id
         )
         self.db.session.add(nuovo_annuncio)
@@ -56,15 +61,23 @@ class GestoreAnnunci:
 
     def modificaAnnuncio(self,annuncio, servizi, dati, file_foto=None, foto_da_eliminare=None):
 
-        # 1. Aggiornamento dei campi testuali
-        annuncio.titolo = dati.get("titolo", annuncio.titolo)
-        annuncio.indirizzo = dati.get("indirizzo", annuncio.indirizzo)
-        annuncio.descrizione = dati.get("descrizione", annuncio.descrizione)
+        titolo = dati.get("titolo", annuncio.titolo)
+        indirizzo = dati.get("indirizzo", annuncio.indirizzo)
+        descrizione = dati.get("descrizione", annuncio.descrizione)
+
+        if not titolo or not indirizzo or not descrizione:
+            raise ValueError("Compila i campi che vuoi modificare con valori validi")
+
+        annuncio.titolo = titolo
+        annuncio.indirizzo = indirizzo
+        annuncio.descrizione = descrizione
         
         costo = dati.get("costo")
         if costo:
-            annuncio.costo = float(costo)
-
+            try:
+                annuncio.costo = float(costo)
+            except ValueError:
+                raise ValueError("Il costo deve essere un numero con la virgola")
 
         if file_foto:
             for file in file_foto:
@@ -104,7 +117,7 @@ class GestoreAnnunci:
         self.db.session.commit()
         return annuncio.visibile
 
-    def visualizza_annuncio(self,id_annuncio):
+    def visualizzaAnnuncio(self, id_annuncio):
         annuncio = self.db.session.get(AnnuncioStanza, id_annuncio)
         if not annuncio:
             raise ValueError("Annuncio non trovato.")
@@ -121,7 +134,7 @@ class GestoreAnnunci:
             "media_voto": media_voto
         }
 
-    def ricerca_annunci(self,query_testo=None, prezzo_max=None, servizi_selezionati=None):
+    def ricercaAnnunci(self, query_testo=None, prezzo_max=None, servizi_selezionati=None):
 
         annunci = AnnuncioStanza.query.filter_by(visibile=True)
 
@@ -138,15 +151,15 @@ class GestoreAnnunci:
 
         # Punto di estensione se ci sono filtri
         if prezzo_max or servizi_selezionati:
-            annunci = self.filtra_annunci(annunci, prezzo_max,servizi_selezionati)
+            annunci = self.filtraAnnunci(annunci, prezzo_max, servizi_selezionati)
             
         return annunci.all()
 
-    def filtra_annunci(self,l_annunci, prezzo_max=None, servizi_selezionati=None):
+    def filtraAnnunci(self, l_annunci, prezzo_max=None, servizi_selezionati=None):
         try:
             prezzo = float(prezzo_max)
             l_annunci = l_annunci.filter(AnnuncioStanza.costo <= prezzo)
-        except TypeError:
+        except (TypeError,ValueError):
             pass # Se il valore non è numerico, restituisce la query inalterata
         
         if servizi_selezionati:

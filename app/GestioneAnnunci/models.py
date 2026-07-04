@@ -9,6 +9,8 @@ class AnnuncioSalvato(db.Model):
     annuncio_id = db.Column(db.Integer, db.ForeignKey('annuncio_stanza.id'), primary_key=True)
     
     annuncio = db.relationship('AnnuncioStanza', backref=db.backref('salvato_da_studenti', cascade="all, delete-orphan"))
+    #salvataggi = db.relationship('AnnuncioSalvato', backref='studente', lazy=True, cascade="all, delete-orphan")
+
 
 
 class AnnuncioServizio(db.Model):

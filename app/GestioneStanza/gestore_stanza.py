@@ -51,7 +51,7 @@ class GestoreStanza:
 
         self.db.session.commit()
 
-    def get_associazione_attiva(self,annuncio_id, studente_id):
+    def getAssociazioneAttiva(self, annuncio_id, studente_id):
         associazione = AssociazioneStudenteStanza.query.filter_by(
             annuncio_id=annuncio_id,
             studente_id=studente_id,
@@ -62,7 +62,7 @@ class GestoreStanza:
         return associazione
 
     def nuovoTicket(self,annuncio_id, studente_id, titolo, descrizione,files=None):
-        associazione = self.get_associazione_attiva(annuncio_id, studente_id)
+        associazione = self.getAssociazioneAttiva(annuncio_id, studente_id)
 
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione.")
@@ -77,16 +77,17 @@ class GestoreStanza:
 
         self.db.session.flush()  
 
-        for file in files:
-            if file and file.filename != '':
-                try:
-                    percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket.id)
-                except:
-                    self.db.session.rollback()
-                    raise
-                if percorso:
-                    foto = FotoTicket(percorso_file=percorso, ticket_id=ticket.id)
-                    self.db.session.add(foto)
+        if files:
+            for file in files:
+                if file and file.filename != '':
+                    try:
+                        percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket.id)
+                    except:
+                        self.db.session.rollback()
+                        raise
+                    if percorso:
+                        foto = FotoTicket(percorso_file=percorso, ticket_id=ticket.id)
+                        self.db.session.add(foto)
 
         self.db.session.commit()
         return ticket
@@ -142,10 +143,10 @@ class GestoreStanza:
         return ticket
 
     def eliminaTicket(self,ticket_id, studente_id):
-        ticket = self.verificaPropritaTicket(ticket_id,studente_id)
+        ticket = self.verificaProprietaTicket(ticket_id, studente_id)
     
         if ticket.stato == StatoTicket.IN_LAVORAZIONE :
-            raise ValueError("Non è possibile eliminare un ticket in lavorazione o chiuso.")
+            raise ValueError("Non è possibile eliminare un ticket in lavorazione.")
 
 
         for foto in ticket.foto:
@@ -175,7 +176,7 @@ class GestoreStanza:
 
 
     def aggiungiRecensione(self,annuncio_id, studente_id, titolo, descrizione, valutazione):
-        associazione = self.get_associazione_attiva(annuncio_id, studente_id)
+        associazione = self.getAssociazioneAttiva(annuncio_id, studente_id)
 
         if associazione.recensione:
             raise ValueError("Hai già pubblicato una recensione per questa stanza.")
@@ -186,10 +187,15 @@ class GestoreStanza:
         if not (1 <= int(valutazione) <= 5):
             raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
 
+        try:
+            valutazione_i = int(valutazione)
+        except:
+            raise ValueError("La valutazione deve essere un inetero compreso tra 1 e 5.")
+
         recensione = Recensione(
             titolo=titolo,
             descrizione=descrizione,
-            valutazione=int(valutazione),
+            valutazione=valutazione_i,
             associazione_id=associazione.id
         )
         self.db.session.add(recensione)
@@ -217,9 +223,14 @@ class GestoreStanza:
         if not (1 <= int(valutazione) <= 5):
             raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
 
+        try:
+            valutazione_i = int(valutazione)
+        except:
+            raise ValueError("La valutazione deve essere un inetero compreso tra 1 e 5.")
+
         recensione.titolo = titolo
         recensione.descrizione = descrizione
-        recensione.valutazione = int(valutazione)
+        recensione.valutazione = valutazione_i
         self.db.session.commit()
         return recensione
 
@@ -227,7 +238,7 @@ class GestoreStanza:
         recensione = Recensione.query.get(recensione_id)
 
         if not recensione:
-            raise ValueError    ("Recensione non trovata")
+            raise ValueError("Recensione non trovata")
 
         if recensione.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a eliminare questa recensione.")
@@ -244,7 +255,7 @@ class GestoreStanza:
     def getRecensioneById(self,id):
         return self.db.session.get(Recensione,id)
 
-    def verificaPropritaTicket(self,ticket_id, user_id):
+    def verificaProprietaTicket(self, ticket_id, user_id):
         ticket = self.db.session.get(Ticket, ticket_id)
         if not ticket:
             raise ValueError("Ticket non trovata")

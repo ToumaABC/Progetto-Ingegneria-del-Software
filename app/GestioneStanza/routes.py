@@ -3,8 +3,6 @@ from flask_login import login_required, current_user
 from app.GestioneStanza import gestione_stanza_bp
 
 
-
-
 @gestione_stanza_bp.route('/annuncio/<int:id>/associa', methods=['POST'])
 @login_required
 def associa_studente(id):
@@ -28,7 +26,7 @@ def associa_studente(id):
 @login_required
 def annulla_associazione(annuncio_id, studente_id):
     try:
-        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(id, current_user.id)
+        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(annuncio_id, current_user.id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for('gestione_annunci.miei_annunci'))
@@ -72,7 +70,11 @@ def nuovo_ticket(annuncio_id):
 @gestione_stanza_bp.route('/ticket/<int:ticket_id>/modifica', methods=['GET', 'POST'])
 @login_required
 def modifica_ticket(ticket_id):
-    ticket = current_app.gestore_stanza.verificaPropritaTicket(ticket_id,current_user.id)
+    try:
+        ticket = current_app.gestore_stanza.verificaProprietaTicket(ticket_id, current_user.id)
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for('gestione_stanza.visualizza_ticket'))
 
     if request.method == "POST":
         titolo = request.form.get("titolo", "").strip()
@@ -123,7 +125,7 @@ def aggiorna_stato_ticket(ticket_id):
 def visualizza_ticket():
     if current_user.ruolo == 'studente':
         tickets = current_app.gestore_stanza.visualizzaTicketStudente(current_user.id)
-        associazione = current_user.get_associazione_attiva()
+        associazione = current_user.getAssociazioneAttiva()
         if associazione :
             annuncio = associazione.annuncio
         else:

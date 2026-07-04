@@ -88,7 +88,7 @@ def visibilita_annuncio(id):
     
     nuovo_stato = current_app.gestore_annunci.cambiaVisibilita(annuncio)
     stato_str = "reso visibile" if nuovo_stato else "nascosto"
-    flash(f"L\"annuncio è stato {stato_str}.", "info")
+    flash(f"L'annuncio è stato {stato_str}.", "info")
         
     return redirect(url_for("gestione_annunci.miei_annunci"))
 
@@ -111,11 +111,12 @@ def index():
     servizi_selezionati = request.args.getlist("servizi")
 
     # Chiamiamo la funzione Base del Gestore
-    annunci = current_app.gestore_annunci.ricerca_annunci(query_testo=query_testo, prezzo_max=prezzo_max, servizi_selezionati=servizi_selezionati)
+    annunci = current_app.gestore_annunci.ricercaAnnunci(query_testo=query_testo, prezzo_max=prezzo_max,
+                                                         servizi_selezionati=servizi_selezionati)
     servizi = current_app.gestore_annunci.getListaServizi()
     annunci_salvati_ids=[]
     if current_user.is_authenticated and current_user.ruolo == "studente":
-        annunci_salvati_ids = [a.id for a in current_user.get_lista_annunci_salvati()]
+        annunci_salvati_ids = [a.id for a in current_user.getListaAnnunciSalvati()]
     
     return render_template("index.html", annunci=annunci, servizi=servizi, annunci_salvati_ids=annunci_salvati_ids)
 
@@ -124,7 +125,7 @@ def index():
 def visualizza_annuncio(id):
 
     try:
-        result = current_app.gestore_annunci.visualizza_annuncio(id)
+        result = current_app.gestore_annunci.visualizzaAnnuncio(id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("gestione_annunci.index"))
@@ -133,7 +134,7 @@ def visualizza_annuncio(id):
     ha_gia_recensito = False
 
     if current_user.is_authenticated and current_user.ruolo == "studente":
-        ha_gia_recensito = current_user.ha_recensito_annuncio(id)
+        ha_gia_recensito = current_user.haRecensitoAnnuncio(id)
         puo_recensire = current_user.associato_alla_stanza(id)
 
     return render_template(
@@ -185,7 +186,7 @@ def annunci_salvati():
         flash("Questa sezione è riservata agli studenti.", "danger")
         return redirect(url_for("gestione_annunci.index"))
     
-    l_annunci_salvati = current_user.get_lista_annunci_salvati()
+    l_annunci_salvati = current_user.getListaAnnunciSalvati()
     
     annunci_salvati_ids=[]
     if current_user.is_authenticated and current_user.ruolo == "studente":
