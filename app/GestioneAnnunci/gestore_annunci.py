@@ -25,6 +25,11 @@ class GestoreAnnunci:
         except ValueError:
             raise ValueError("Il costo deve essere un numero con la virgola")
 
+        #Controllo se ho inserito una foto
+        if not file_foto or file_foto[0].filename == "":
+             raise ValueError("È richiesta almeno una foto per l'annuncio.")
+
+
         # Creazione Annuncio
         nuovo_annuncio = AnnuncioStanza(
             titolo=titolo,
@@ -45,13 +50,13 @@ class GestoreAnnunci:
                 annuncio_servizio = AnnuncioServizio(annuncio_id=nuovo_annuncio.id, servizio_id=servizio.id)
                 self.db.session.add(annuncio_servizio)
 
-        # Gestione Foto
-        if not file_foto or file_foto[0].filename == "":
-             raise ValueError("È richiesta almeno una foto per l'annuncio.")
-
-
         for file in file_foto:
-            percorso = GestoreFoto.salva_file_fisico(file, "annunci", "annuncio", nuovo_annuncio.id)
+
+            try:
+                percorso = GestoreFoto.salva_file_fisico(file, "annunci", "annuncio", nuovo_annuncio.id)
+            except:
+                self.db.session.rollback()
+                raise
             if percorso:
                 nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=nuovo_annuncio.id)
                 self.db.session.add(nuova_foto)
@@ -72,6 +77,7 @@ class GestoreAnnunci:
         annuncio.indirizzo = indirizzo
         annuncio.descrizione = descrizione
         
+
         costo = dati.get("costo")
         if costo:
             try:

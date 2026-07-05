@@ -135,7 +135,7 @@ def visualizza_annuncio(id):
 
     if current_user.is_authenticated and current_user.ruolo == "studente":
         ha_gia_recensito = current_user.haRecensitoAnnuncio(id)
-        puo_recensire = current_user.associato_alla_stanza(id)
+        puo_recensire = current_user.associatoAllaStanza(id)
 
     return render_template(
         "gestione_annunci/visualizza_annuncio.html",

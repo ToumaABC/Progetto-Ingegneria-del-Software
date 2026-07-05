@@ -51,7 +51,7 @@ class Studente(Utente):
                 return associazione
         return None
 
-    def associato_alla_stanza(self, annuncio_id):
+    def associatoAllaStanza(self, annuncio_id):
         for associazione in self.associazioni_stanze:
             if associazione.annuncio_id == annuncio_id and associazione.attiva:
                 return associazione

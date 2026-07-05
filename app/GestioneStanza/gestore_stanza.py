@@ -112,15 +112,16 @@ class GestoreStanza:
 
         if not ticket:
             raise ValueError("Ticket non esiste.")
-
+        if ticket.associazione.studente_id != studente_id:
+            raise ValueError("Non sei autorizzato a modificare questo ticket.")
+    
         if ticket.stato == StatoTicket.IN_LAVORAZIONE or ticket.stato == StatoTicket.CHIUSO:
             raise ValueError("Impossibile modificare un ticket in lavorazione o chiuso")
 
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione")
 
-        if ticket.associazione.studente_id != studente_id:
-            raise ValueError("Non sei autorizzato a modificare questo ticket.")
+
 
         ticket.titolo = titolo
         ticket.descrizione = descrizione
@@ -183,14 +184,15 @@ class GestoreStanza:
 
         if not titolo or not descrizione or not valutazione:
             raise ValueError("Compila tutti i campi")
-
-        if not (1 <= int(valutazione) <= 5):
-            raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
-
         try:
             valutazione_i = int(valutazione)
         except:
             raise ValueError("La valutazione deve essere un inetero compreso tra 1 e 5.")
+
+        if not (1 <= valutazione_i <= 5):
+            raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
+
+
 
         recensione = Recensione(
             titolo=titolo,
