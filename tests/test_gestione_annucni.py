@@ -98,7 +98,8 @@ class TestGestioneAnnunci(unittest.TestCase):
     def test_elimina_annuncio_inesistente(self):
         # L'ID 999 non esiste nel DB. La route usa get_or_404, quindi ci aspettiamo un errore 404
         response = self.client.post('/elimina_annuncio/999', follow_redirects=True)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("annuncio non trovato",response.data.decode('utf-8').lower())
 
 if __name__ == '__main__':
     unittest.main()

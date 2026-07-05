@@ -198,7 +198,7 @@ def elimina_recensione(recensione_id):
     recensione = current_app.gestore_stanza.getRecensioneById(recensione_id)
     if not recensione:
         flash("Recensione non esistente","danger")
-        return redirect(request.referrer or url_for('gestione_stanza.index'))
+        return redirect(request.referrer or url_for('gestione_annunci.index'))
 
     annuncio_id = recensione.associazione.annuncio_id
     try:

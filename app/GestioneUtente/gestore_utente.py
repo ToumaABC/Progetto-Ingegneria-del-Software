@@ -25,7 +25,7 @@ class GestoreUtente:
     def validaPassword(password):
         if len(password) < 8:
             return False
-        if not re.search(r"\d", password):#verifico la presenza di una cifra numerica
+        if not re.search(r"\d", password):#verifico la presenza di un numero
             return False
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>_]", password): #verfico la presenza di un carattere speciale
             return False
@@ -41,8 +41,11 @@ class GestoreUtente:
             raise ValueError("Credenziali errate.")
 
         if not utente.verificato:
-            self.inviaEmailVerifica(email)
-            raise ValueError("Il tuo account è in attesa di verifica. Ti abbiamo inviato una nuova email.") 
+            try:
+                self.inviaEmailVerifica(email)
+            except Exception:
+                raise ValueError("Il tuo account è in attesa di verifica e non siamo riusciti ad inviarti una nuova mail di conferma riprova più tardi")
+            raise ValueError("Il tuo account è in attesa di verifica. Ti abbiamo inviato una nuova email.")
 
         return utente
 
@@ -55,7 +58,7 @@ class GestoreUtente:
         cognome=dati_form.get('cognome')
         numTelefono=dati_form.get('numTelefono')
 
-        if not nome or not cognome or not email or not ruolo:
+        if not nome or not cognome or not email or not ruolo or not password:
             raise ValueError("Compila tutti i campi")
 
         # Controllo unicità email
@@ -84,25 +87,27 @@ class GestoreUtente:
         else:
             raise ValueError("Ruolo non valido.")
 
+        try:
+            self.inviaEmailVerifica(email)
+        except Exception:
+            raise ValueError("Impossibile inviare l'email riprova a registrarti")
+
         self.db.session.add(nuovo_utente)
         self.db.session.commit()
-
-        self.inviaEmailVerifica(email)
-        
         return nuovo_utente
     
     def inviaEmailVerifica(self, email):
         token = GestoreUtente.generaTokenVerifica(email)
         link_verifica = url_for('gestione_utente.verify_email', token=token, _external=True)
-        
+
         msg = Message(
             "Verifica il tuo account",
             recipients=[email]
         )
         msg.body = f"Grazie per esserti registrato!\n\nPer attivare il tuo account, clicca sul seguente link di conferma:\n{link_verifica}\n\nIl link rimarrà attivo per un'ora."
-        
+
         self.mail.send(msg)
-    
+
     def verificaEmail(self, token):
         email = GestoreUtente.confermaTokenVerifica(token)
         
