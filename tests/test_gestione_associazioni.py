@@ -103,7 +103,7 @@ class TestGestioneAssociazioni(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Verifichiamo che l'associazione non sia stata eliminata ma solo disattivata
-        associazione_disattivata = AssociazioneStudenteStanza.query.get(associazione.id)
+        associazione_disattivata = db.session.get(AssociazioneStudenteStanza,associazione.id)
         self.assertIsNotNone(associazione_disattivata)
         self.assertFalse(associazione_disattivata.attiva)
 

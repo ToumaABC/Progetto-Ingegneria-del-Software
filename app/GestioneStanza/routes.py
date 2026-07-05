@@ -168,6 +168,10 @@ def nuova_recensione(annuncio_id):
 def modifica_recensione(recensione_id):
     recensione = current_app.gestore_stanza.getRecensioneById(recensione_id)
 
+    if recensione.associazione.studente_id != current_user.id:
+        flash("Non sei autorizzato a visualizzare questa pagina.", "danger")
+        return redirect(url_for('gestione_annunci.index'))
+
     if not recensione:
         flash("Recensione non esistente","danger")
         return redirect(request.referrer or url_for('gestione_annunci.index'))

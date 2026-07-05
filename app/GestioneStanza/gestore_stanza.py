@@ -184,6 +184,7 @@ class GestoreStanza:
 
         if not titolo or not descrizione or not valutazione:
             raise ValueError("Compila tutti i campi")
+
         try:
             valutazione_i = int(valutazione)
         except:
@@ -191,8 +192,6 @@ class GestoreStanza:
 
         if not (1 <= valutazione_i <= 5):
             raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
-
-
 
         recensione = Recensione(
             titolo=titolo,
@@ -222,13 +221,13 @@ class GestoreStanza:
         if recensione.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a modificare questa recensione.")
 
-        if not (1 <= int(valutazione) <= 5):
-            raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
-
         try:
             valutazione_i = int(valutazione)
         except:
             raise ValueError("La valutazione deve essere un inetero compreso tra 1 e 5.")
+
+        if not (1 <= valutazione_i <= 5):
+            raise ValueError("La valutazione deve essere compresa tra 1 e 5.")
 
         recensione.titolo = titolo
         recensione.descrizione = descrizione

@@ -207,6 +207,7 @@ class GestoreUtente:
                     for ticket in associazione.tickets:
                         for foto in ticket.foto:
                             percorsi_foto_da_rimuovere.append(foto.percorso_file)
+
         elif utente.ruolo == 'studente':
             for associazione in utente.associazioni_stanze:
                 for ticket in associazione.tickets:

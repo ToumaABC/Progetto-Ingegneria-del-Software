@@ -15,7 +15,6 @@ class TestGestioneAnnunci(unittest.TestCase):
         self.app.config['TESTING'] = True
         self.app.config['WTF_CSRF_ENABLED'] = False
         self.app_context = self.app.app_context()
-        warnings.filterwarnings("ignore")
 
         self.app_context.push()
         self.client = self.app.test_client()
@@ -93,13 +92,15 @@ class TestGestioneAnnunci(unittest.TestCase):
 
         response = self.client.post(f'/elimina_annuncio/{annuncio.id}', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIsNone(AnnuncioStanza.query.get(annuncio.id))
+        self.assertIsNone(db.session.get(AnnuncioStanza,annuncio.id))
 
     def test_elimina_annuncio_inesistente(self):
-        # L'ID 999 non esiste nel DB. La route usa get_or_404, quindi ci aspettiamo un errore 404
+        # L'ID 999 non esiste nel DB.
         response = self.client.post('/elimina_annuncio/999', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("annuncio non trovato",response.data.decode('utf-8').lower())
+        self.assertIn(b"annuncio non trovato",response.data.decode("utf-8").lower())
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,3 +1,4 @@
+
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioServizio, AnnuncioSalvato
 from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
@@ -45,7 +46,7 @@ class GestoreAnnunci:
         # Gestione Servizi
         servizi_selezionati = servizi
         for serv_id in servizi_selezionati:
-            servizio = Servizio.query.get(serv_id)
+            servizio = self.db.session.get(Servizio,serv_id)
             if servizio:
                 annuncio_servizio = AnnuncioServizio(annuncio_id=nuovo_annuncio.id, servizio_id=servizio.id)
                 self.db.session.add(annuncio_servizio)
@@ -76,7 +77,6 @@ class GestoreAnnunci:
         annuncio.titolo = titolo
         annuncio.indirizzo = indirizzo
         annuncio.descrizione = descrizione
-        
 
         costo = dati.get("costo")
         if costo:
@@ -102,7 +102,7 @@ class GestoreAnnunci:
         servizi_selezionati = servizi
         AnnuncioServizio.query.filter_by(annuncio_id=annuncio.id).delete()
         for serv_id in servizi_selezionati:
-            servizio = Servizio.query.get(serv_id)
+            servizio = self.db.session.get(Servizio, serv_id)
             if servizio:
                 annuncio_servizio = AnnuncioServizio(annuncio_id=annuncio.id, servizio_id=servizio.id)
                 self.db.session.add(annuncio_servizio)
@@ -113,6 +113,12 @@ class GestoreAnnunci:
         annuncio = self.verificaProprietaAnnuncio(annuncio_id, user_id)
         for foto in annuncio.foto:
             GestoreFoto.elimina_file_fisico(foto.percorso_file)
+
+        for associazione in annuncio.associazioni:
+            for ticket in associazione.tickets:
+                for foto_ticket in ticket.foto:
+                    GestoreFoto.elimina_file_fisico(foto_ticket.percorso_file)
+
         self.db.session.delete(annuncio)
         self.db.session.commit()
 
@@ -125,7 +131,7 @@ class GestoreAnnunci:
 
     def visualizzaAnnuncio(self, id_annuncio):
         annuncio = self.db.session.get(AnnuncioStanza, id_annuncio)
-        if not annuncio:
+        if not annuncio or annuncio.visibile== False:
             raise ValueError("Annuncio non trovato.")
         locatore = self.gestore_utente.visualizzaProfilo(annuncio.locatore_id)
         inquilini = self.gestore_stanza.visualizzaInquilini(id_annuncio)
@@ -201,7 +207,7 @@ class GestoreAnnunci:
         return Servizio.query.all()
 
     def verificaProprietaAnnuncio(self, annuncio_id, utente_id):
-        annuncio = AnnuncioStanza.query.get(annuncio_id)
+        annuncio = self.db.session.get(AnnuncioStanza, annuncio_id)
         if not annuncio:
             raise ValueError("Annuncio non trovato.")
             
