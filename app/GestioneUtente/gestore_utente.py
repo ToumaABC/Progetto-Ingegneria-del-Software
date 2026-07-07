@@ -2,7 +2,6 @@ from flask import current_app, url_for
 import string
 import random
 from flask_mail import Message
-
 from app.GestioneFoto.gestore_foto import GestoreFoto
 from app.GestioneUtente.models import Utente, Studente, Locatore
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,6 +9,9 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignat
 import re
 
 class GestoreUtente:
+
+    RE_DIGIT = re.compile(r"\d")
+    RE_SPECIAL = re.compile(r"[!@#$%^&*(),.?\":{}|<>_]")
 
     def __init__(self,db,mail):
         self.db = db
@@ -25,9 +27,9 @@ class GestoreUtente:
     def validaPassword(password):
         if len(password) < 8:
             return False
-        if not re.search(r"\d", password):#verifico la presenza di un numero
+        if not GestoreUtente.RE_DIGIT.search(password):#verifico la presenza di un numero
             return False
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>_]", password): #verfico la presenza di un carattere speciale
+        if not GestoreUtente.RE_SPECIAL.search(password): #verfico la presenza di un carattere speciale
             return False
         return True
 
@@ -166,7 +168,7 @@ class GestoreUtente:
         cognome = dati_form.get('cognome', utente.cognome)
 
         if not nome or not cognome:
-            raise ValueError("Compila tutti i campi")
+            raise ValueError("Compila i campi che vuoi modificare correttamente")
 
 
         # Aggiornamento dati anagrafici
@@ -181,7 +183,7 @@ class GestoreUtente:
             facolta = dati_form.get('facolta', utente.facolta)
             corso = dati_form.get('corso', utente.corso)
             if not universita or not facolta or not corso:
-                raise ValueError("Compila tutti i campi")
+                raise ValueError("Compila i campi che vuoi modificare correttamente")
 
 
             utente.universita = universita
@@ -193,7 +195,7 @@ class GestoreUtente:
         self.db.session.commit()
 
     def eliminaProfilo(self, utente_id):
-        utente = Utente.query.get(utente_id)
+        utente = self.db.session.get(Utente, utente_id)
         if not utente:
             raise ValueError("Utente non trovato")
 
@@ -264,7 +266,7 @@ class GestoreUtente:
             raise ValueError("Impossibile inviare l'email di recupero password.")
 
     def visualizzaProfilo(self, utente_id):
-        utente = Utente.query.get(utente_id)
+        utente = self.db.session.get(Utente, utente_id)
         if not utente:
             raise ValueError("Utente non trovato")
         return utente

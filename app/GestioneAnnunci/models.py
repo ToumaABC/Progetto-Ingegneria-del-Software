@@ -11,7 +11,6 @@ class AnnuncioSalvato(db.Model):
     annuncio = db.relationship('AnnuncioStanza', backref=db.backref('salvato_da_studenti', cascade="all, delete-orphan"))
 
 
-
 class AnnuncioServizio(db.Model):
     __tablename__ = 'annuncio_servizio'
     
@@ -20,6 +19,7 @@ class AnnuncioServizio(db.Model):
     
     annuncio = db.relationship('AnnuncioStanza', backref=db.backref('servizi_collegati', cascade="all, delete-orphan"))
     servizio = db.relationship('Servizio', backref=db.backref('annunci_collegati', cascade="all, delete-orphan"))
+
 
 class AnnuncioStanza(db.Model):
     __tablename__ = 'annuncio_stanza'

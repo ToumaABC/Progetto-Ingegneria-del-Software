@@ -1,6 +1,7 @@
 from app.GestioneStanza.models import AssociazioneStudenteStanza,StatoTicket,Ticket, Recensione
 from app.GestioneFoto.models import FotoTicket
 from app.GestioneFoto.gestore_foto import GestoreFoto
+from sqlalchemy import select
 
 class GestoreStanza:
 
@@ -14,11 +15,11 @@ class GestoreStanza:
         if not studente:
             raise ValueError("Nessuno studente trovato con questa email.")
             
-        associazione_attiva = AssociazioneStudenteStanza.query.filter_by(studente_id=studente.id, attiva=True).first()
+        associazione_attiva = self.db.session.scalar(select(AssociazioneStudenteStanza).filter_by(studente_id=studente.id, attiva=True))
         if associazione_attiva:
             raise ValueError("Lo studente è già associato a un'altra stanza attiva.")
         
-        associazione_disattivata = AssociazioneStudenteStanza.query.filter_by(studente_id=studente.id,annuncio_id=annuncio_id, attiva=False).first()
+        associazione_disattivata = self.db.session.scalar(select(AssociazioneStudenteStanza).filter_by(studente_id=studente.id,annuncio_id=annuncio_id, attiva=False))
         if associazione_disattivata:
             associazione_disattivata.attiva = True
             self.db.session.commit()
@@ -34,15 +35,15 @@ class GestoreStanza:
         return nuova_associazione
 
     def visualizzaInquilini(self,annuncio_id):
-        associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id, attiva=True).all()
+        associazioni = self.db.session.scalars(select(AssociazioneStudenteStanza).filter_by(annuncio_id=annuncio_id, attiva=True)).all()
         return associazioni
     
     def annullaAssociazione(self,annuncio_id, studente_id):
-        associazione = AssociazioneStudenteStanza.query.filter_by(
+        associazione = self.db.session.scalar(select(AssociazioneStudenteStanza).filter_by(
             annuncio_id=annuncio_id, 
             studente_id=studente_id,
             attiva=True
-        ).first()
+        ))
         
         if not associazione:
             raise ValueError("L'associazione specificata non esiste.")
@@ -52,11 +53,11 @@ class GestoreStanza:
         self.db.session.commit()
 
     def getAssociazioneAttiva(self, annuncio_id, studente_id):
-        associazione = AssociazioneStudenteStanza.query.filter_by(
+        associazione = self.db.session.scalar(select(AssociazioneStudenteStanza).filter_by(
             annuncio_id=annuncio_id,
             studente_id=studente_id,
             attiva=True
-        ).first()
+        ))
         if not associazione:
             raise ValueError("Non sei associato a questa stanza.")
         return associazione
@@ -93,22 +94,21 @@ class GestoreStanza:
         return ticket
 
     def visualizzaTicketStudente(self,studente_id):
-        associazioni = AssociazioneStudenteStanza.query.filter_by(studente_id=studente_id).all()
+        associazioni = self.db.session.scalars(select(AssociazioneStudenteStanza).filter_by(studente_id=studente_id)).all()
         tickets = []
         for a in associazioni:
             tickets.extend(a.tickets)
         return tickets
 
     def visualizzaTicketLocatore(self,annuncio_id):
-        """Tutti i ticket relativi a un annuncio del locatore."""
-        associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id).all()
+        associazioni = self.db.session.scalars(select(AssociazioneStudenteStanza).filter_by(annuncio_id=annuncio_id)).all()
         tickets = []
         for a in associazioni:
             tickets.extend(a.tickets)
         return tickets
 
     def modificaTicket(self,ticket_id, studente_id, titolo, descrizione,foto_da_aggiungere=None,foto_da_eliminare=None):
-        ticket = Ticket.query.get(ticket_id)
+        ticket = self.db.session.get(Ticket, ticket_id)
 
         if not ticket:
             raise ValueError("Ticket non esiste.")
@@ -120,8 +120,6 @@ class GestoreStanza:
 
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione")
-
-
 
         ticket.titolo = titolo
         ticket.descrizione = descrizione
@@ -135,7 +133,7 @@ class GestoreStanza:
 
         if foto_da_eliminare:
             for foto_id in foto_da_eliminare:
-                foto_check = FotoTicket.query.get(foto_id)
+                foto_check = self.db.session.get(FotoTicket, foto_id)
                 if foto_check and foto_check.ticket_id == ticket.id:
                     GestoreFoto.elimina_file_fisico(foto_check.percorso_file)
                     self.db.session.delete(foto_check)
@@ -156,7 +154,7 @@ class GestoreStanza:
         self.db.session.commit()
 
     def aggiornaStatoTicket(self,ticket_id, locatore_id):
-        ticket = Ticket.query.get(ticket_id)
+        ticket = self.db.session.get(Ticket, ticket_id)
 
         if not ticket:
             raise ValueError("Ticket non esiste.")
@@ -187,7 +185,7 @@ class GestoreStanza:
 
         try:
             valutazione_i = int(valutazione)
-        except:
+        except (ValueError, TypeError):
             raise ValueError("La valutazione deve essere un inetero compreso tra 1 e 5.")
 
         if not (1 <= valutazione_i <= 5):
@@ -204,13 +202,16 @@ class GestoreStanza:
         return recensione
 
     def visualizzaRecensioni(self,annuncio_id):
-        associazioni = AssociazioneStudenteStanza.query.filter_by(annuncio_id=annuncio_id).all()
+        associazioni = self.db.session.scalars(
+                select(AssociazioneStudenteStanza).filter_by(annuncio_id=annuncio_id)
+        ).all()
+
         recensioni = [a.recensione for a in associazioni if a.recensione is not None]
         return recensioni
 
     def modificaRecensione(self,recensione_id, studente_id, titolo, descrizione, valutazione):
 
-        recensione = Recensione.query.get(recensione_id)
+        recensione = self.db.session.get(Recensione, recensione_id)
 
         if not recensione:
             raise ValueError("Recensione non trovata")
@@ -223,7 +224,7 @@ class GestoreStanza:
 
         try:
             valutazione_i = int(valutazione)
-        except:
+        except (ValueError, TypeError):
             raise ValueError("La valutazione deve essere un inetero compreso tra 1 e 5.")
 
         if not (1 <= valutazione_i <= 5):
@@ -236,7 +237,7 @@ class GestoreStanza:
         return recensione
 
     def eliminaRecensione(self,recensione_id, studente_id):
-        recensione = Recensione.query.get(recensione_id)
+        recensione = self.db.session.get(Recensione, recensione_id)
 
         if not recensione:
             raise ValueError("Recensione non trovata")

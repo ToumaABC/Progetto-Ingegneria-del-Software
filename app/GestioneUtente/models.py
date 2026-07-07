@@ -1,6 +1,6 @@
 from app import db
 from flask_login import UserMixin
-
+from sqlalchemy import select
 
 
 class Utente(UserMixin, db.Model):
@@ -24,7 +24,7 @@ class Utente(UserMixin, db.Model):
 
     @classmethod
     def cercaUtentePerEmail(cls, email_inserita):
-        return cls.query.filter_by(email=email_inserita).first()
+        return db.session.scalar(select(cls).filter_by(email=email_inserita))
 
 class Studente(Utente):
     __tablename__ = 'studente'

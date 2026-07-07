@@ -50,5 +50,4 @@ class Recensione(db.Model):
     associazione_id = db.Column(db.Integer, db.ForeignKey('associazione_studente_stanza.id'), nullable=False)
 
 
-    #uselist false per indicare che ogni associazione può avere un unica recensione (sostituire con controllo)
     associazione = db.relationship('AssociazioneStudenteStanza',backref=db.backref('recensione', uselist=False, cascade="all, delete-orphan"))

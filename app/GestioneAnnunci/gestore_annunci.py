@@ -2,6 +2,7 @@
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioServizio, AnnuncioSalvato
 from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
+from sqlalchemy import select, delete
 
 
 class GestoreAnnunci:
@@ -23,7 +24,7 @@ class GestoreAnnunci:
 
         try:
             costo_f = float(costo)
-        except ValueError:
+        except (ValueError,TypeError):
             raise ValueError("Il costo deve essere un numero con la virgola")
 
         #Controllo se ho inserito una foto
@@ -55,7 +56,7 @@ class GestoreAnnunci:
 
             try:
                 percorso = GestoreFoto.salva_file_fisico(file, "annunci", "annuncio", nuovo_annuncio.id)
-            except:
+            except ValueError:
                 self.db.session.rollback()
                 raise
             if percorso:
@@ -82,7 +83,7 @@ class GestoreAnnunci:
         if costo:
             try:
                 annuncio.costo = float(costo)
-            except ValueError:
+            except (ValueError,TypeError):
                 raise ValueError("Il costo deve essere un numero con la virgola")
 
         if file_foto:
@@ -94,13 +95,14 @@ class GestoreAnnunci:
 
         if foto_da_eliminare:
             for foto_id in foto_da_eliminare:
-                foto_check = FotoAnnuncio.query.get(foto_id)
+                foto_check = self.db.session.get(FotoAnnuncio, foto_id)
                 if foto_check and foto_check.annuncio_id == annuncio.id:
                     GestoreFoto.elimina_file_fisico(foto_check.percorso_file)
                     self.db.session.delete(foto_check)
 
         servizi_selezionati = servizi
-        AnnuncioServizio.query.filter_by(annuncio_id=annuncio.id).delete()
+        #Elimino i servizi assocaiti all'annuncio e creo le nuove associazioni annuncio servizio
+        self.db.session.execute(delete(AnnuncioServizio).filter_by(annuncio_id=annuncio.id))
         for serv_id in servizi_selezionati:
             servizio = self.db.session.get(Servizio, serv_id)
             if servizio:
@@ -148,7 +150,7 @@ class GestoreAnnunci:
 
     def ricercaAnnunci(self, query_testo=None, prezzo_max=None, servizi_selezionati=None):
 
-        annunci = AnnuncioStanza.query.filter_by(visibile=True)
+        annunci = select(AnnuncioStanza).filter_by(visibile=True)
 
         # Flusso principale ricerca
         if query_testo:
@@ -165,7 +167,7 @@ class GestoreAnnunci:
         if prezzo_max or servizi_selezionati:
             annunci = self.filtraAnnunci(annunci, prezzo_max, servizi_selezionati)
             
-        return annunci.all()
+        return self.db.session.scalars(annunci).all()
 
     def filtraAnnunci(self, l_annunci, prezzo_max=None, servizi_selezionati=None):
         try:
@@ -179,7 +181,7 @@ class GestoreAnnunci:
             for serv_id in servizi_selezionati:
                 try:
                     id_serv = int(serv_id)
-                    subquery = self.db.session.query(AnnuncioServizio.annuncio_id).filter(AnnuncioServizio.servizio_id == id_serv)
+                    subquery = select(AnnuncioServizio.annuncio_id).filter(AnnuncioServizio.servizio_id == id_serv)
                     l_annunci = l_annunci.filter(AnnuncioStanza.id.in_(subquery))
                 except ValueError:
                     pass
@@ -187,9 +189,10 @@ class GestoreAnnunci:
         return l_annunci
 
     def salvaAnnuncio(self,studente_id, annuncio_id):
-        if not AnnuncioStanza.query.get(annuncio_id) :
+        if not self.db.session.get(AnnuncioStanza,annuncio_id) :
             raise ValueError("Annuncio non trovato.")
-        salvataggio_esistente = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
+
+        salvataggio_esistente = self.db.session.scalar(select(AnnuncioSalvato).filter_by(studente_id=studente_id, annuncio_id=annuncio_id))
         if salvataggio_esistente:
             raise ValueError("Hai già salvato questo annuncio.")
         nuovo_salvataggio = AnnuncioSalvato(studente_id=studente_id, annuncio_id=annuncio_id)
@@ -197,14 +200,14 @@ class GestoreAnnunci:
         self.db.session.commit()
 
     def eliminaAnnuncioSalvato(self,studente_id, annuncio_id):
-        salvataggio = AnnuncioSalvato.query.filter_by(studente_id=studente_id, annuncio_id=annuncio_id).first()
+        salvataggio = self.db.session.scalar(select(AnnuncioSalvato).filter_by(studente_id=studente_id, annuncio_id=annuncio_id))
         if not salvataggio:
             raise ValueError("Non puoi rimuovere un annuncio non salvato ")
         self.db.session.delete(salvataggio)
         self.db.session.commit()
 
     def getListaServizi(self):
-        return Servizio.query.all()
+        return self.db.session.scalars(select(Servizio)).all()
 
     def verificaProprietaAnnuncio(self, annuncio_id, utente_id):
         annuncio = self.db.session.get(AnnuncioStanza, annuncio_id)

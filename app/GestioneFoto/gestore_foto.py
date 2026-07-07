@@ -1,5 +1,6 @@
 import os
 from flask import current_app
+import uuid
 
 class GestoreFoto:
     
@@ -24,14 +25,8 @@ class GestoreFoto:
         counter = 1
         
         # Genera il nome formattato
-        filename = f"{prefisso_nome}_{id_entita}_foto_{counter}.{estensione}"
+        filename = f"{prefisso_nome}_{id_entita}_{uuid.uuid4().hex}.{estensione}"
         filepath = os.path.join(upload_folder, filename)
-
-        # Cerca il primo nome progressivo libero
-        while os.path.exists(filepath):
-            counter += 1
-            filename = f"{prefisso_nome}_{id_entita}_foto_{counter}.{estensione}"
-            filepath = os.path.join(upload_folder, filename)
 
         # Salva fisicamente il file sul disco
         file.save(filepath)

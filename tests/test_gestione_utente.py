@@ -3,19 +3,15 @@ from unittest.mock import patch
 from app import create_app, db
 from app.GestioneUtente.models import Utente,Studente
 from werkzeug.security import generate_password_hash
+from sqlalchemy import select,func
+
+from tests.base import BaseTestCase
 
 
-class TestGestioneUtente(unittest.TestCase):
+class TestGestioneUtente(BaseTestCase):
 
     def setUp(self):
-        self.app = create_app()
-        self.app.config["TESTING"] = True
-        self.app.config["WTF_CSRF_ENABLED"] = False
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        self.client = self.app.test_client()
-        db.drop_all()
-        db.create_all()
+        super().setUp()
 
         password_hash = generate_password_hash("Password123!")
         utente_test = Studente(
@@ -29,10 +25,6 @@ class TestGestioneUtente(unittest.TestCase):
         db.session.add(utente_test)
         db.session.commit()
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
 
     @patch("app.GestioneUtente.gestore_utente.GestoreUtente.inviaEmailVerifica")
     def test_registrazione_valida(self,mock_invia_email):
@@ -48,7 +40,7 @@ class TestGestioneUtente(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         # Verifica che l"utente sia stato effettivamente salvato nel database
-        nuovo_utente = Utente.query.filter_by(email="luigi.verdi@email.com").first()
+        nuovo_utente = db.session.scalar(select(Utente).filter_by(email="luigi.verdi@email.com"))
         self.assertIsNotNone(nuovo_utente)
         self.assertEqual(nuovo_utente.nome, "Luigi")
         mock_invia_email.assert_called_once_with("luigi.verdi@email.com")
@@ -63,10 +55,10 @@ class TestGestioneUtente(unittest.TestCase):
             "ruolo": "studente"
         }, follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"email inserita è già in uso.", response.data.lower())
+        self.assertIn("email inserita è già in uso.", response.data.decode("utf-8").lower())
         
         # Verifica che gli utenti nel database siano rimasti 1
-        utenti_totali = Utente.query.count()
+        utenti_totali = db.session.scalar(select(func.count()).select_from(Utente))
         self.assertEqual(utenti_totali, 1)
 
 

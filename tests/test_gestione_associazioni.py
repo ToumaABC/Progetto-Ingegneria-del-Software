@@ -4,18 +4,15 @@ from app.GestioneUtente.models import Locatore, Studente
 from app.GestioneAnnunci.models import AnnuncioStanza
 from app.GestioneStanza.models import AssociazioneStudenteStanza
 from werkzeug.security import generate_password_hash
+from sqlalchemy import func,select
 
-class TestGestioneAssociazioni(unittest.TestCase):
+from tests.base import BaseTestCase
+
+
+class TestGestioneAssociazioni(BaseTestCase):
 
     def setUp(self):
-        self.app = create_app()
-        self.app.config['TESTING'] = True
-        self.app.config['WTF_CSRF_ENABLED'] = False
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        self.client = self.app.test_client()
-        db.drop_all()
-        db.create_all()
+        super().setUp()
 
         pw_hash = generate_password_hash("Password123!")
         
@@ -41,25 +38,21 @@ class TestGestioneAssociazioni(unittest.TestCase):
         db.session.commit()
 
         # Login automatico come Locatore
-        self.client.post('/login', data={'email': 'locatore@test.com', 'password': 'Password123!'}, follow_redirects=True)
+        self.login('locatore@test.com', 'Password123!')
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
 
     def test_associa_studente_valido(self):
-        # Il locatore associa lo studente all'annuncio
+        #  Associo lo studente all'annuncio
         response = self.client.post(f'/annuncio/{self.annuncio.id}/associa', data={
             'email_studente': 'anna@studenti.com'
         }, follow_redirects=True)
 
         self.assertEqual(response.status_code, 200)
         
-        # Verifica nel database
-        associazione = AssociazioneStudenteStanza.query.filter_by(
+        # Verifico nel database
+        associazione = db.session.scalar(select(AssociazioneStudenteStanza).filter_by(
             annuncio_id=self.annuncio.id, studente_id=self.studente.id
-        ).first()
+        ))
         self.assertIsNotNone(associazione)
         self.assertTrue(associazione.attiva)
 
@@ -71,7 +64,8 @@ class TestGestioneAssociazioni(unittest.TestCase):
 
         # Controlla il messaggio di flash generato dal ValueError nel gestore
         self.assertIn("nessuno studente trovato con questa email", response.data.decode('utf-8').lower())
-        self.assertEqual(AssociazioneStudenteStanza.query.count(), 0)
+        numero_associazioni = db.session.scalar(select(func.count()).select_from(AssociazioneStudenteStanza))
+        self.assertEqual(numero_associazioni, 0)
 
     def test_associa_studente_gia_associato(self):
         # 1. Creiamo un'associazione già attiva manualmente
@@ -81,28 +75,29 @@ class TestGestioneAssociazioni(unittest.TestCase):
         db.session.add(associazione)
         db.session.commit()
 
-        # 2. Proviamo ad associarlo nuovamente
+        # Provo ad associarlo nuovamente
         response = self.client.post(f'/annuncio/{self.annuncio.id}/associa', data={
             'email_studente': 'anna@studenti.com'
         }, follow_redirects=True)
 
         self.assertIn("già associato", response.data.decode('utf-8').lower())
-        # Ci aspettiamo che l'associazione nel DB rimanga 1
-        self.assertEqual(AssociazioneStudenteStanza.query.count(), 1)
+
+        # Verifico che le associazione nel DB sia 1
+        numero_associazioni = db.session.scalar(select(func.count()).select_from(AssociazioneStudenteStanza))
+        self.assertEqual(numero_associazioni, 1)
 
     def test_annulla_associazione(self):
-        # Precondizione: studente associato
         associazione = AssociazioneStudenteStanza(
             annuncio_id=self.annuncio.id, studente_id=self.studente.id, attiva=True
         )
         db.session.add(associazione)
         db.session.commit()
 
-        # Locatore annulla l'associazione
+        # Annullo l'associazione
         response = self.client.post(f'/annuncio/{self.annuncio.id}/annulla_associazione/{self.studente.id}', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
-        # Verifichiamo che l'associazione non sia stata eliminata ma solo disattivata
+        # Verifico che l'associazione non sia stata eliminata ma solo disattivata
         associazione_disattivata = db.session.get(AssociazioneStudenteStanza,associazione.id)
         self.assertIsNotNone(associazione_disattivata)
         self.assertFalse(associazione_disattivata.attiva)

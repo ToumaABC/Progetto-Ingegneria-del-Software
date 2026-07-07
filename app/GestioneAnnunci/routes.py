@@ -115,7 +115,7 @@ def index():
                                                          servizi_selezionati=servizi_selezionati)
     servizi = current_app.gestore_annunci.getListaServizi()
     annunci_salvati_ids=[]
-    if current_user.is_authenticated and current_user.ruolo == "studente":
+    if current_user.ruolo == "studente":
         annunci_salvati_ids = [a.id for a in current_user.getListaAnnunciSalvati()]
     
     return render_template("index.html", annunci=annunci, servizi=servizi, annunci_salvati_ids=annunci_salvati_ids)
@@ -160,8 +160,8 @@ def salva_annuncio(id):
         flash("Annuncio salvato nei preferiti!", "success")
     except ValueError as e:
         flash(str(e), "danger")
-    finally:        
-        return redirect(request.referrer or url_for("gestione_annunci.index"))
+
+    return redirect(request.referrer or url_for("gestione_annunci.index"))
 
 
 @gestione_annunci_bp.route("/rimuovi_salvato/<int:id>", methods=["POST"])

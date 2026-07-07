@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import select
 from flask_login import LoginManager
 from flask_mail import Mail
 
@@ -13,12 +14,15 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     
     # Configurazione App & DB da variabili d'ambiente
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///database.sqlite')
+    if test_config:
+        app.config.update(test_config)
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # RNF-5: Configurazione Flask-Mail estratta da .env
@@ -54,11 +58,10 @@ def create_app():
     app.register_blueprint(gestione_annunci_bp)
     app.register_blueprint(gestione_stanza_bp)
 
-
     from app.GestioneUtente.models import Utente
     @login_manager.user_loader
     def load_user(user_id):
-        return Utente.query.get(int(user_id))
+        return db.session.get(Utente, int(user_id))
     
     login_manager.login_message = "Effettua il login per accedere a questa pagina."
     login_manager.login_message_category = "warning"
@@ -73,7 +76,7 @@ def create_app():
 
         servizi_default = ["WiFi", "Aria Condizionata", "Lavatrice", "Riscaldamento", "Ascensore", "Posto Auto"]
         
-        if not Servizio.query.first():
+        if not db.session.scalars(select(Servizio)).first():
             for nome in servizi_default:
                 nuovo_servizio = Servizio(nome_servizio=nome)
                 db.session.add(nuovo_servizio)
