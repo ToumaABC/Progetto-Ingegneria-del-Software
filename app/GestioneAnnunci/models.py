@@ -18,7 +18,7 @@ class AnnuncioServizio(db.Model):
     servizio_id = db.Column(db.Integer, db.ForeignKey('servizio.id'), primary_key=True)
     
     annuncio = db.relationship('AnnuncioStanza', backref=db.backref('servizi_collegati', cascade="all, delete-orphan"))
-    servizio = db.relationship('Servizio', backref=db.backref('annunci_collegati', cascade="all, delete-orphan"))
+    servizio = db.relationship('Servizio')
 
 
 class AnnuncioStanza(db.Model):

@@ -1,3 +1,4 @@
+from app.GestioneAnnunci.models import AnnuncioStanza
 from app.GestioneStanza.models import AssociazioneStudenteStanza,StatoTicket,Ticket, Recensione
 from app.GestioneFoto.models import FotoTicket
 from app.GestioneFoto.gestore_foto import GestoreFoto
@@ -11,7 +12,10 @@ class GestoreStanza:
     
     def associaStudente(self,annuncio_id, email_studente):
         studente = self.gestore_utente.cercaStudentePerEmail(email_studente)
-        
+
+        if not self.db.session.get(AnnuncioStanza, annuncio_id):
+            raise ValueError("Annuncio non trovato.")
+
         if not studente:
             raise ValueError("Nessuno studente trovato con questa email.")
             
@@ -186,7 +190,7 @@ class GestoreStanza:
         try:
             valutazione_i = int(valutazione)
         except (ValueError, TypeError):
-            raise ValueError("La valutazione deve essere un inetero compreso tra 1 e 5.")
+            raise ValueError("La valutazione deve essere un numero intero compreso tra 1 e 5.")
 
         if not (1 <= valutazione_i <= 5):
             raise ValueError("La valutazione deve essere compresa tra 1 e 5.")

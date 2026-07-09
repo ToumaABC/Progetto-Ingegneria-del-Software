@@ -1,7 +1,7 @@
 from app import db
 
 class Foto(db.Model):
-    __abstract__ = True     
+    __abstract__ = True
     id_foto = db.Column(db.Integer, primary_key=True)
     percorso_file = db.Column(db.String(255), nullable=False) 
 

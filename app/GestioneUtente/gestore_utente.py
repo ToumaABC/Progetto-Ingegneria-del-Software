@@ -5,7 +5,7 @@ from flask_mail import Message
 from app.GestioneFoto.gestore_foto import GestoreFoto
 from app.GestioneUtente.models import Utente, Studente, Locatore
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import re
 
 class GestoreUtente:
@@ -141,7 +141,7 @@ class GestoreUtente:
             #prelevo il token verificando che non sia scaduto
             email = serializer.loads(token, salt="email-verification-salt", max_age=expiration)
             return email
-        except (SignatureExpired, BadTimeSignature):
+        except (SignatureExpired, BadSignature):
             return None
         
     def modificaProfilo(self, utente, dati_form):

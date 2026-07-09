@@ -36,7 +36,7 @@ class Ticket(db.Model):
 
     # Relazioni
     associazione = db.relationship('AssociazioneStudenteStanza', backref=db.backref('tickets', lazy=True, cascade="all, delete-orphan"))
-    foto = db.relationship('FotoTicket', backref='ticket', lazy=True, cascade="all, delete-orphan")
+    foto = db.relationship('FotoTicket', lazy=True, cascade="all, delete-orphan")
 
 
 class Recensione(db.Model):
