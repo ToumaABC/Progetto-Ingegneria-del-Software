@@ -135,14 +135,13 @@ class GestoreAnnunci:
         annuncio = self.db.session.get(AnnuncioStanza, id_annuncio)
         if not annuncio or annuncio.visibile== False:
             raise ValueError("Annuncio non trovato.")
-        locatore = self.gestore_utente.visualizzaProfilo(annuncio.locatore_id)
         inquilini = self.gestore_stanza.visualizzaInquilini(id_annuncio)
         recensioni = self.gestore_stanza.visualizzaRecensioni(id_annuncio)
         media_voto = self.gestore_stanza.calcolaValutazioneMedia(id_annuncio)
 
         return {
             "annuncio": annuncio,
-            "locatore": locatore,
+            "locatore": annuncio.locatore,
             "inquilini": inquilini,
             "recensioni": recensioni,
             "media_voto": media_voto

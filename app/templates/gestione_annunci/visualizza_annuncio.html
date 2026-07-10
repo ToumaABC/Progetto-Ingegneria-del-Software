@@ -116,6 +116,8 @@
             <div class="d-flex flex-wrap gap-4 align-items-start mt-4">
                 
                 <div class="text-center">
+                <a href="{{ url_for("gestione_utente.profilo", id=locatore.id) }}" class="text-decoration-none text-dark">
+
                     <div class="border rounded px-3 py-1 bg-white shadow-sm d-inline-block border-dark">
                         <i class="bi bi-person-fill" style="font-size: 2.5rem;"></i>
                     </div>
@@ -128,10 +130,12 @@
                             <div><i class="bi bi-telephone-fill me-1"></i>{{ locatore.numTelefono }}</div>
                         {% endif %}
                     </div>
+                </a>
                 </div>
 
                 {% for assoc in inquilini_associati %}
                     <div class="text-center">
+                        <a href="{{ url_for("gestione_utente.profilo", id=assoc.studente_id) }}" class="text-decoration-none text-dark">
                         <div class="border rounded px-3 py-1 bg-white shadow-sm d-inline-block border-primary">
                             <i class="bi bi-person" style="font-size: 2.5rem;"></i>
                         </div>
@@ -147,6 +151,7 @@
                                 <div><i class="bi bi-telephone-fill me-1"></i>{{ assoc.studente.numTelefono }}</div>
                             {% endif %}
                         </div>
+                    </a>
                     </div>
                 {% endfor %}
 
