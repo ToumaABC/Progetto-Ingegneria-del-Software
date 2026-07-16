@@ -17,12 +17,6 @@ class GestoreUtente:
         self.db = db
         self.mail = mail
 
-    def cercaStudentePerEmail(self, email):
-        utente = Utente.cercaUtentePerEmail(email)
-        if utente and utente.ruolo == 'studente':
-            return utente
-        return None
-
     @staticmethod
     def validaPassword(password):
         if len(password) < 8:

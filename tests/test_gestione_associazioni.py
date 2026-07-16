@@ -63,7 +63,7 @@ class TestGestioneAssociazioni(BaseTestCase):
         }, follow_redirects=True)
 
         # Controlla il messaggio di flash generato dal ValueError nel gestore
-        self.assertIn("nessuno studente trovato con questa email", response.data.decode('utf-8').lower())
+        self.assertIn("lo studente cercato non esiste", response.data.decode('utf-8').lower())
         numero_associazioni = db.session.scalar(select(func.count()).select_from(AssociazioneStudenteStanza))
         self.assertEqual(numero_associazioni, 0)
 

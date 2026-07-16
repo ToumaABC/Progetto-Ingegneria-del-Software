@@ -42,8 +42,8 @@ def create_app(test_config=None):
     from app.GestioneUtente.gestore_utente import GestoreUtente
 
     gestore_utente = GestoreUtente(db, mail)
-    gestore_stanza = GestoreStanza(db, gestore_utente)
-    gestore_annunci = GestoreAnnunci(db, gestore_utente, gestore_stanza)
+    gestore_stanza = GestoreStanza(db)
+    gestore_annunci = GestoreAnnunci(db, gestore_stanza)
 
     app.gestore_utente = gestore_utente
     app.gestore_stanza = gestore_stanza

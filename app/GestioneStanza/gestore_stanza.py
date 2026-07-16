@@ -4,22 +4,27 @@ from app.GestioneFoto.models import FotoTicket
 from app.GestioneFoto.gestore_foto import GestoreFoto
 from sqlalchemy import select
 
+from app.GestioneUtente.models import Utente
+
+
 class GestoreStanza:
 
-    def __init__(self,db,gestore_utente):
+    def __init__(self,db):
         self.db = db
-        self.gestore_utente = gestore_utente
-    
+
     def associaStudente(self,annuncio_id, email_studente):
-        studente = self.gestore_utente.cercaStudentePerEmail(email_studente)
+        studente = Utente.cercaUtentePerEmail(email_studente)
+
+        if not studente:
+            raise ValueError("Lo studente cercato non esiste.")
+
+        if  studente.ruolo == 'locatore':
+            raise ValueError("Puoi associare solo uno studente")
 
         if not self.db.session.get(AnnuncioStanza, annuncio_id):
             raise ValueError("Annuncio non trovato.")
-
-        if not studente:
-            raise ValueError("Nessuno studente trovato con questa email.")
             
-        associazione_attiva = self.db.session.scalar(select(AssociazioneStudenteStanza).filter_by(studente_id=studente.id, attiva=True))
+        associazione_attiva = studente.getAssociazioneAttiva()
         if associazione_attiva:
             raise ValueError("Lo studente è già associato a un'altra stanza attiva.")
         

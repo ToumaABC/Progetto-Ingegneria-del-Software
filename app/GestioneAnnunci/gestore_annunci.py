@@ -1,4 +1,3 @@
-
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio, AnnuncioServizio, AnnuncioSalvato
 from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
@@ -8,9 +7,8 @@ from sqlalchemy import select, delete
 class GestoreAnnunci:
 
 
-    def __init__(self, db,gestore_utente,gestore_stanza):
+    def __init__(self, db,gestore_stanza):
         self.db = db
-        self.gestore_utente = gestore_utente
         self.gestore_stanza = gestore_stanza
 
     def aggiungiAnnuncio(self,dati, servizi, file_foto, locatore_id):
