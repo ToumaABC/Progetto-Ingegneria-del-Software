@@ -29,6 +29,7 @@ class GestoreAnnunci:
         if not file_foto or file_foto[0].filename == "":
              raise ValueError("È richiesta almeno una foto per l'annuncio.")
 
+        GestoreFoto.valida_lista_file(file_foto)
 
         # Creazione Annuncio
         nuovo_annuncio = AnnuncioStanza(
@@ -51,12 +52,7 @@ class GestoreAnnunci:
                 self.db.session.add(annuncio_servizio)
 
         for file in file_foto:
-
-            try:
-                percorso = GestoreFoto.salva_file_fisico(file, "annunci", "annuncio", nuovo_annuncio.id)
-            except ValueError:
-                self.db.session.rollback()
-                raise
+            percorso = GestoreFoto.salva_file_fisico(file, "annunci", "annuncio", nuovo_annuncio.id)
             if percorso:
                 nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=nuovo_annuncio.id)
                 self.db.session.add(nuova_foto)
@@ -84,8 +80,10 @@ class GestoreAnnunci:
             except (ValueError,TypeError):
                 raise ValueError("Il costo deve essere un numero con la virgola")
 
-        # Conto quante foto nuove verranno effettivamente caricate (scarto i campi file vuoti)
+        # Conto quante foto nuove verranno effettivamente caricate
         nuove_foto_valide = [f for f in file_foto if f and f.filename] if file_foto else []
+
+        GestoreFoto.valida_lista_file(nuove_foto_valide)
 
         # Recupero le foto da eliminare che sono effettivamente valide (esistenti e appartenenti all"annuncio)
         foto_da_eliminare_valide = []
@@ -111,6 +109,7 @@ class GestoreAnnunci:
             for foto_check in foto_da_eliminare_valide:
                 GestoreFoto.elimina_file_fisico(foto_check.percorso_file)
                 self.db.session.delete(foto_check)
+
 
         servizi_selezionati = servizi
         #Elimino i servizi assocaiti all'annuncio e creo le nuove associazioni annuncio servizio

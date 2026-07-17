@@ -3,7 +3,6 @@ from app.GestioneStanza.models import AssociazioneStudenteStanza,StatoTicket,Tic
 from app.GestioneFoto.models import FotoTicket
 from app.GestioneFoto.gestore_foto import GestoreFoto
 from sqlalchemy import select
-
 from app.GestioneUtente.models import Utente
 
 
@@ -85,16 +84,14 @@ class GestoreStanza:
         )
         self.db.session.add(ticket)
 
-        self.db.session.flush()  
+        GestoreFoto.valida_lista_file(files)
+
+        self.db.session.flush()
 
         if files:
             for file in files:
                 if file and file.filename != '':
-                    try:
-                        percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket.id)
-                    except:
-                        self.db.session.rollback()
-                        raise
+                    percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket.id)
                     if percorso:
                         foto = FotoTicket(percorso_file=percorso, ticket_id=ticket.id)
                         self.db.session.add(foto)
@@ -129,6 +126,11 @@ class GestoreStanza:
 
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione")
+
+        ticket.titolo = titolo
+        ticket.descrizione = descrizione
+
+        GestoreFoto.valida_lista_file(foto_da_aggiungere)
 
         ticket.titolo = titolo
         ticket.descrizione = descrizione

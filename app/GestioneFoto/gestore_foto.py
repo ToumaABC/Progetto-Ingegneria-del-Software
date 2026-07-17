@@ -11,12 +11,18 @@ class GestoreFoto:
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in GestoreFoto.ALLOWED_EXTENSIONS
 
     @staticmethod
+    def valida_lista_file(files):
+        if not files:
+            return
+        for file in files:
+            if file and file.filename != '' and not GestoreFoto.allowed_file(file.filename):
+                raise ValueError(
+                    f"Formato file non supportato ({file.filename}). Usa: {GestoreFoto.ALLOWED_EXTENSIONS}")
+
+    @staticmethod
     def salva_file_fisico(file, sotto_cartella, prefisso_nome, id_entita):
         if not file or file.filename == '':
             return None
-            
-        if not GestoreFoto.allowed_file(file.filename):
-            raise ValueError(f"Formato file non supportato. Usa: {GestoreFoto.ALLOWED_EXTENSIONS}")
 
         upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', sotto_cartella)
         os.makedirs(upload_folder, exist_ok=True)
