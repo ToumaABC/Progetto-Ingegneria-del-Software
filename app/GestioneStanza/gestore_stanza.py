@@ -127,8 +127,7 @@ class GestoreStanza:
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione")
 
-        ticket.titolo = titolo
-        ticket.descrizione = descrizione
+
 
         GestoreFoto.valida_lista_file(foto_da_aggiungere)
 

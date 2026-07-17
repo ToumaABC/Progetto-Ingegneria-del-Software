@@ -57,6 +57,8 @@ class GestoreUtente:
         if not nome or not cognome or not email or not ruolo or not password:
             raise ValueError("Compila tutti i campi")
 
+        email = email.strip().lower()
+
         # Controllo unicità email
         if Utente.cercaUtentePerEmail(email):
             raise ValueError("L'email inserita è già in uso.")

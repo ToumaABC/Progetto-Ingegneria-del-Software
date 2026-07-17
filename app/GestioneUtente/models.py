@@ -24,7 +24,7 @@ class Utente(UserMixin, db.Model):
 
     @classmethod
     def cercaUtentePerEmail(cls, email_inserita):
-        return db.session.scalar(select(cls).filter_by(email=email_inserita))
+        return db.session.scalar(select(cls).filter_by(email=email_inserita.strip().lower()))
 
 class Studente(Utente):
     __tablename__ = 'studente'

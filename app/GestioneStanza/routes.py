@@ -177,12 +177,6 @@ def modifica_recensione(recensione_id):
         return redirect(url_for('gestione_annunci.index'))
 
 
-
-    if current_user.ruolo != 'studente':
-        flash("Non autorizzato.", "danger")
-        return redirect(url_for('gestione_annunci.index'))
-
-
     if request.method == 'POST':
         titolo = request.form.get('titolo', '').strip()
         descrizione = request.form.get('descrizione', '').strip()
