@@ -18,7 +18,7 @@ def create_app(test_config=None):
     app = Flask(__name__)
     
     # Configurazione App & DB da variabili d'ambiente
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY',"test")
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///database.sqlite')
     if test_config:
         app.config.update(test_config)

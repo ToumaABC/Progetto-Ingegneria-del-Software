@@ -84,19 +84,33 @@ class GestoreAnnunci:
             except (ValueError,TypeError):
                 raise ValueError("Il costo deve essere un numero con la virgola")
 
-        if file_foto:
-            for file in file_foto:
-                percorso = GestoreFoto.salva_file_fisico(file, sotto_cartella="annunci", prefisso_nome="annuncio", id_entita=annuncio.id)
-                if percorso:
-                    nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=annuncio.id)
-                    self.db.session.add(nuova_foto)
+        # Conto quante foto nuove verranno effettivamente caricate (scarto i campi file vuoti)
+        nuove_foto_valide = [f for f in file_foto if f and f.filename] if file_foto else []
 
+        # Recupero le foto da eliminare che sono effettivamente valide (esistenti e appartenenti all"annuncio)
+        foto_da_eliminare_valide = []
         if foto_da_eliminare:
             for foto_id in foto_da_eliminare:
                 foto_check = self.db.session.get(FotoAnnuncio, foto_id)
                 if foto_check and foto_check.annuncio_id == annuncio.id:
-                    GestoreFoto.elimina_file_fisico(foto_check.percorso_file)
-                    self.db.session.delete(foto_check)
+                    foto_da_eliminare_valide.append(foto_check)
+
+        # Controllo che dopo la modifica rimanga almeno una foto per l"annuncio
+        foto_totali_dopo_modifica = len(annuncio.foto) - len(foto_da_eliminare_valide) + len(nuove_foto_valide)
+        if foto_totali_dopo_modifica < 1:
+            raise ValueError("L'annuncio deve avere almeno una foto.")
+
+        if nuove_foto_valide:
+            for file in nuove_foto_valide:
+                percorso = GestoreFoto.salva_file_fisico(file, sotto_cartella="annunci", prefisso_nome="annuncio",id_entita=annuncio.id)
+                if percorso:
+                    nuova_foto = FotoAnnuncio(percorso_file=percorso, annuncio_id=annuncio.id)
+                    self.db.session.add(nuova_foto)
+
+        if foto_da_eliminare_valide:
+            for foto_check in foto_da_eliminare_valide:
+                GestoreFoto.elimina_file_fisico(foto_check.percorso_file)
+                self.db.session.delete(foto_check)
 
         servizi_selezionati = servizi
         #Elimino i servizi assocaiti all'annuncio e creo le nuove associazioni annuncio servizio
