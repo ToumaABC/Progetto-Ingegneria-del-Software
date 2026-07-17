@@ -13,12 +13,11 @@ Questo sistema è una piattaforma software sviluppata in Python dedicata esclusi
 * **Ticketing:** Sistema di segnalazione guasti integrato per comunicazioni dirette tra inquilini e locatori.
 * **Recensioni Verificate:** Sistema di feedback accessibile solo agli studenti associati a un alloggio, per garantire recensioni reali al 100%.
 
-## 🛠️ Architettura e Tecnologie (Stack)
+## 🛠️Tecnologie
 
 * **Linguaggio:** Python 3.x
 * **Framework Web:** Flask (Backend/API)
 * **Database:** SQLite (Relazionale)
-* **Architettura:** Model-View-Controller (MVC) tramite classi `Gestore` (Manager pattern).
 
 
 ## ⚙️ Configurazione e Installazione
