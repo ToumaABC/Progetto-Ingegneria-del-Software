@@ -1,4 +1,3 @@
-from app.GestioneAnnunci.models import AnnuncioStanza
 from app.GestioneStanza.models import AssociazioneStudenteStanza,StatoTicket,Ticket, Recensione
 from app.GestioneFoto.models import FotoTicket
 from app.GestioneFoto.gestore_foto import GestoreFoto
@@ -19,9 +18,6 @@ class GestoreStanza:
 
         if  studente.ruolo == 'locatore':
             raise ValueError("Puoi associare solo uno studente")
-
-        if not self.db.session.get(AnnuncioStanza, annuncio_id):
-            raise ValueError("Annuncio non trovato.")
             
         associazione_attiva = studente.getAssociazioneAttiva()
         if associazione_attiva:

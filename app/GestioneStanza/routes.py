@@ -19,7 +19,7 @@ def associa_studente(id):
     except ValueError as e:
         flash(str(e), "danger")
         
-    return redirect(url_for('gestione_annunci.miei_annunci', id=id))
+    return redirect(url_for('gestione_annunci.miei_annunci'))
 
 
 @gestione_stanza_bp.route('/annuncio/<int:annuncio_id>/annulla_associazione/<int:studente_id>', methods=['POST'])
