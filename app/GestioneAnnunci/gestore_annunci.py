@@ -122,8 +122,7 @@ class GestoreAnnunci:
 
         self.db.session.commit()
 
-    def eliminaAnnuncio(self,annuncio_id,user_id):
-        annuncio = self.verificaProprietaAnnuncio(annuncio_id, user_id)
+    def eliminaAnnuncio(self,annuncio):
         for foto in annuncio.foto:
             GestoreFoto.elimina_file_fisico(foto.percorso_file)
 

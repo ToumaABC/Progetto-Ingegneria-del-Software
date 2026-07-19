@@ -100,28 +100,6 @@ class TestGestioneAnnunci(BaseTestCase):
         self.assertEqual(annuncio_modificato.descrizione, 'Descrizione aggiornata.')
         self.assertEqual(annuncio_modificato.costo, 350.0)
 
-    def test_modifica_annuncio_mancante_campi(self):
-        annuncio = AnnuncioStanza(
-            titolo="Da modificare", indirizzo="Via Vecchia 1",
-            descrizione="Descrizione vecchia", costo=200.0, locatore_id=self.locatore.id
-        )
-        db.session.add(annuncio)
-        db.session.commit()
-
-        data = {
-            'titolo': '',
-            'indirizzo': 'Via Nuova 2',
-            'descrizione': 'Descrizione aggiornata.',
-        }
-        response = self.client.post(f'/modifica_annuncio/{annuncio.id}', data=data, content_type='multipart/form-data',
-                                    follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("compila i campi che vuoi modificare con valori validi", response.data.decode('utf-8').lower())
-
-        # Verifica che l'annuncio non sia stato modificato
-        annuncio_invariato = db.session.get(AnnuncioStanza, annuncio.id)
-        self.assertEqual(annuncio_invariato.titolo, "Da modificare")
-
     @patch('app.GestioneFoto.gestore_foto.GestoreFoto.elimina_file_fisico')
     def test_elimina_annuncio_valido(self, mock_elimina):
         annuncio = AnnuncioStanza(

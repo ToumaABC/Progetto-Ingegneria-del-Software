@@ -226,7 +226,7 @@ class GestoreUtente:
         caratteri = string.ascii_letters
         numeri = string.digits
         speciali = "!@#$%^&*(),.?\":{}|<>"
-        # Genero almeno un numero e un carattere speciale 
+        # Genero un numero e un carattere speciale
         password_list = [
             random.choice(numeri),
             random.choice(speciali)

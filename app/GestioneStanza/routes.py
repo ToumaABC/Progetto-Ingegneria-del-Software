@@ -1,17 +1,12 @@
 from flask import render_template, request, redirect, url_for, flash,current_app
 from flask_login import login_required, current_user
 from app.GestioneStanza import gestione_stanza_bp
+from app.utils.decorator import verifica_proprieta_annuncio
 
-
-@gestione_stanza_bp.route('/annuncio/<int:id>/associa', methods=['POST'])
+@gestione_stanza_bp.route("/annuncio/<int:id>/associa", methods=["POST"])
 @login_required
-def associa_studente(id):
-    try:
-        current_app.gestore_annunci.verificaProprietaAnnuncio(id,current_user.id)
-    except ValueError as e:
-        flash(str(e), "danger")
-        return redirect(url_for('gestione_annunci.miei_annunci'))
-
+@verifica_proprieta_annuncio
+def associa_studente(id,annuncio):
     email = request.form.get('email_studente')
     try:
         current_app.gestore_stanza.associaStudente(id, email)
@@ -22,18 +17,10 @@ def associa_studente(id):
     return redirect(url_for('gestione_annunci.miei_annunci'))
 
 
-@gestione_stanza_bp.route('/annuncio/<int:annuncio_id>/annulla_associazione/<int:studente_id>', methods=['POST'])
+@gestione_stanza_bp.route("/annuncio/<int:annuncio_id>/annulla_associazione/<int:studente_id>", methods=["POST","GET"])
 @login_required
-def annulla_associazione(annuncio_id, studente_id):
-    try:
-        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(annuncio_id, current_user.id)
-    except ValueError as e:
-        flash(str(e), "danger")
-        return redirect(url_for('gestione_annunci.miei_annunci'))
-    
-    if annuncio.locatore_id != current_user.id:
-        flash("Non sei autorizzato a modificare questo annuncio.", "danger")
-        return redirect(url_for('gestione_annunci.miei_annunci'))
+@verifica_proprieta_annuncio
+def annulla_associazione(annuncio_id, studente_id,annuncio):
         
     try:
         current_app.gestore_stanza.annullaAssociazione(annuncio_id, studente_id)

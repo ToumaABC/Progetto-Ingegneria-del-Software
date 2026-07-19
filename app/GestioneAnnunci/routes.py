@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from app.GestioneAnnunci import gestione_annunci_bp
+from app.utils.decorator import verifica_proprieta_annuncio
 
 
 @gestione_annunci_bp.route("/aggiungi_annuncio", methods=["GET", "POST"])
@@ -29,14 +30,9 @@ def aggiungi_annuncio():
 
 @gestione_annunci_bp.route("/modifica_annuncio/<int:id>", methods=["GET", "POST"])
 @login_required
-def modifica_annuncio(id):
+@verifica_proprieta_annuncio
+def modifica_annuncio(id,annuncio):
 
-    #verifico che l"annuncio esista e l"utente sia il proprietario dell annuncio 
-    try:
-        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(id, current_user.id)
-    except ValueError as e:
-        flash(str(e), "danger")
-        return redirect(url_for("gestione_annunci.index"))
     servizi_disponibili = current_app.gestore_annunci.getListaServizi()
 
     if request.method == "POST":
@@ -67,9 +63,10 @@ def modifica_annuncio(id):
 
 @gestione_annunci_bp.route("/elimina_annuncio/<int:id>", methods=["POST"])
 @login_required
-def elimina_annuncio(id):
+@verifica_proprieta_annuncio
+def elimina_annuncio(id,annuncio):
     try:
-        current_app.gestore_annunci.eliminaAnnuncio(id,current_user.id)
+        current_app.gestore_annunci.eliminaAnnuncio(annuncio)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("gestione_annunci.miei_annunci"))
@@ -79,13 +76,8 @@ def elimina_annuncio(id):
 
 @gestione_annunci_bp.route("/visibilita_annuncio/<int:id>", methods=["POST"])
 @login_required
-def visibilita_annuncio(id):
-    try:
-        annuncio = current_app.gestore_annunci.verificaProprietaAnnuncio(id, current_user.id)
-    except ValueError as e:
-        flash(str(e), "danger")
-        return redirect(url_for("gestione_annunci.index"))    
-    
+@verifica_proprieta_annuncio
+def visibilita_annuncio(id,annuncio):
     nuovo_stato = current_app.gestore_annunci.cambiaVisibilita(annuncio)
     stato_str = "reso visibile" if nuovo_stato else "nascosto"
     flash(f"L'annuncio è stato {stato_str}.", "info")
