@@ -109,11 +109,8 @@ class GestoreStanza:
             tickets.extend(a.tickets)
         return tickets
 
-    def modificaTicket(self,ticket_id, studente_id, titolo, descrizione,foto_da_aggiungere=None,foto_da_eliminare=None):
-        ticket = self.db.session.get(Ticket, ticket_id)
+    def modificaTicket(self,ticket, studente_id, titolo, descrizione,foto_da_aggiungere=None,foto_da_eliminare=None):
 
-        if not ticket:
-            raise ValueError("Ticket non esiste.")
         if ticket.associazione.studente_id != studente_id:
             raise ValueError("Non sei autorizzato a modificare questo ticket.")
     
@@ -213,12 +210,7 @@ class GestoreStanza:
         recensioni = [a.recensione for a in associazioni if a.recensione is not None]
         return recensioni
 
-    def modificaRecensione(self,recensione_id, studente_id, titolo, descrizione, valutazione):
-
-        recensione = self.db.session.get(Recensione, recensione_id)
-
-        if not recensione:
-            raise ValueError("Recensione non trovata")
+    def modificaRecensione(self,recensione, studente_id, titolo, descrizione, valutazione):
 
         if not titolo or not descrizione or not valutazione:
             raise ValueError("Compila tutti i campi")
@@ -250,8 +242,6 @@ class GestoreStanza:
             return None
         return round(sum(r.valutazione for r in recensioni) / len(recensioni), 1)
 
-    def getRecensioneById(self,id):
-        return self.db.session.get(Recensione,id)
 
     def verificaProprietaTicket(self, ticket_id, user_id):
         ticket = self.db.session.get(Ticket, ticket_id)

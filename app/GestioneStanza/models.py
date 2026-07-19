@@ -16,7 +16,6 @@ class AssociazioneStudenteStanza(db.Model):
     studente = db.relationship('Studente', backref=db.backref('associazioni_stanze', lazy=True, cascade="all, delete-orphan"))
 
 
-
 class StatoTicket(enum.Enum):
     APERTO = "aperto"
     IN_LAVORAZIONE = "in_lavorazione"

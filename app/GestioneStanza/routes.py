@@ -65,7 +65,7 @@ def modifica_ticket(ticket_id,ticket):
         foto_da_eliminare = request.form.getlist("foto_da_eliminare")
 
         try:
-            current_app.gestore_stanza.modificaTicket(ticket_id, current_user.id, titolo, descrizione, foto_da_aggiungere, foto_da_eliminare)
+            current_app.gestore_stanza.modificaTicket(ticket, current_user.id, titolo, descrizione, foto_da_aggiungere, foto_da_eliminare)
             flash("Ticket aggiornato con successo.", "success")
             return redirect(url_for('gestione_stanza.visualizza_ticket'))
         except ValueError as e:
@@ -153,7 +153,7 @@ def modifica_recensione(recensione_id,recensione):
         valutazione = request.form.get('valutazione', '0')
 
         try:
-            recensione = current_app.gestore_stanza.modificaRecensione(recensione_id, current_user.id, titolo, descrizione, valutazione)
+            recensione = current_app.gestore_stanza.modificaRecensione(recensione, current_user.id, titolo, descrizione, valutazione)
             flash("Recensione aggiornata.", "success")
             return redirect(url_for('gestione_annunci.visualizza_annuncio', id=recensione.associazione.annuncio_id))
         except ValueError as e:

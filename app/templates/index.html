@@ -7,7 +7,6 @@
 <!-- MAIN SEARCH BAR -->
 <div class="mb-4">
     <form action="{{ url_for('gestione_annunci.index') }}" method="GET" id="searchForm">
-        <!-- Barra di ricerca stile mockup -->
         <div class="bg-secondary bg-opacity-10 p-2 rounded-pill d-flex align-items-center mb-3 shadow-sm">
             <i class="bi bi-search text-muted ms-3 me-2 fs-5"></i>
             <input type="text" class="form-control bg-transparent border-0 shadow-none fs-5 py-2" id="ricerca" name="query" placeholder="Cerca per città, università o via..." value="{{ request.args.get('query', '') }}">

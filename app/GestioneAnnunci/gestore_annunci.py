@@ -72,6 +72,7 @@ class GestoreAnnunci:
             raise ValueError("Compila i campi che vuoi modificare con valori validi")
 
         costo = dati.get("costo")
+        costo_f = annuncio.costo
         if costo:
             try:
                 costo_f = float(costo)
