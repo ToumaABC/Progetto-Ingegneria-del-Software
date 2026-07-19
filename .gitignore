@@ -6,6 +6,7 @@ app/GestioneUtente/__pycache__/
 app/GestioneAnnunci/__pycache__/
 app/GestioneStanza/__pycache__/
 app/GestioneFoto/__pycache__/
+app/utils/__pycache__/
 tests/__pycache__/
 app/static/
 popola_db.py

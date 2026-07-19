@@ -128,9 +128,9 @@ class GestoreStanza:
         if foto_da_aggiungere:
             for file in foto_da_aggiungere:
                 if file and file.filename != '':
-                    percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket_id)
+                    percorso = GestoreFoto.salva_file_fisico(file, 'tickets', 'ticket', ticket.id)
                     if percorso:
-                        foto = FotoTicket(percorso_file=percorso, ticket_id=ticket_id)
+                        foto = FotoTicket(percorso_file=percorso, ticket_id=ticket.id)
                         self.db.session.add(foto)
 
         if foto_da_eliminare:

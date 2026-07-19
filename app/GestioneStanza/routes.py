@@ -1,8 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash,current_app
 from flask_login import login_required, current_user
 from app.GestioneStanza import gestione_stanza_bp
-from app.utils.decorator import verifica_proprieta_annuncio, ruolo_richiesto, verifica_proprieta_ticket, \
-    verifica_proprieta_recensione
+from app.utils.decorator import verifica_proprieta_annuncio, ruolo_richiesto, verifica_proprieta_ticket, verifica_proprieta_recensione
 
 
 @gestione_stanza_bp.route("/annuncio/<int:id>/associa", methods=["POST"])
