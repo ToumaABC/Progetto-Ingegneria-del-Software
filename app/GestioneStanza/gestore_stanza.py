@@ -124,7 +124,6 @@ class GestoreStanza:
             raise ValueError("Inserire almeno titolo e descrizione")
 
 
-
         GestoreFoto.valida_lista_file(foto_da_aggiungere)
 
         ticket.titolo = titolo
@@ -147,9 +146,8 @@ class GestoreStanza:
         self.db.session.commit()
         return ticket
 
-    def eliminaTicket(self,ticket_id, studente_id):
-        ticket = self.verificaProprietaTicket(ticket_id, studente_id)
-    
+    def eliminaTicket(self,ticket):
+
         if ticket.stato == StatoTicket.IN_LAVORAZIONE :
             raise ValueError("Non è possibile eliminare un ticket in lavorazione.")
 
@@ -242,15 +240,7 @@ class GestoreStanza:
         self.db.session.commit()
         return recensione
 
-    def eliminaRecensione(self,recensione_id, studente_id):
-        recensione = self.db.session.get(Recensione, recensione_id)
-
-        if not recensione:
-            raise ValueError("Recensione non trovata")
-
-        if recensione.associazione.studente_id != studente_id:
-            raise ValueError("Non sei autorizzato a eliminare questa recensione.")
-
+    def eliminaRecensione(self,recensione):
         self.db.session.delete(recensione)
         self.db.session.commit()
 
@@ -272,3 +262,14 @@ class GestoreStanza:
             raise ValueError("Non puoi modificare un ticket non tuo")
 
         return ticket
+
+
+    def verificaProprietaRecensione(self, recensione_id, studente_id):
+        recensione = self.db.session.get(Recensione, recensione_id)
+        if not recensione:
+            raise ValueError("Recensione non trovata")
+
+        if recensione.associazione.studente_id != studente_id:
+            raise ValueError("Non sei autorizzato a modificare questa recensione.")
+
+        return recensione

@@ -1,16 +1,13 @@
 from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from app.GestioneAnnunci import gestione_annunci_bp
-from app.utils.decorator import verifica_proprieta_annuncio
+from app.utils.decorator import verifica_proprieta_annuncio,ruolo_richiesto
 
 
 @gestione_annunci_bp.route("/aggiungi_annuncio", methods=["GET", "POST"])
 @login_required
+@ruolo_richiesto("locatore")
 def aggiungi_annuncio():
-    if current_user.ruolo != "locatore":
-        flash("Solo i locatori possono pubblicare annunci.", "danger")
-        return redirect(url_for("gestione_annunci.index"))
-
     if request.method == "POST":
         try:
             current_app.gestore_annunci.aggiungiAnnuncio(
@@ -87,11 +84,8 @@ def visibilita_annuncio(id,annuncio):
 
 @gestione_annunci_bp.route("/miei_annunci", methods=["GET"])
 @login_required
+@ruolo_richiesto("locatore")
 def miei_annunci():
-    if current_user.ruolo != "locatore":
-        flash("Accesso consentito solo ai locatori.", "danger")
-        return redirect(url_for("gestione_annunci.index"))
-    
     return render_template("gestione_annunci/miei_annunci.html", annunci=current_user.annunci)
 
 
@@ -142,10 +136,8 @@ def visualizza_annuncio(id):
 
 @gestione_annunci_bp.route("/salva_annuncio/<int:id>", methods=["POST"])
 @login_required
+@ruolo_richiesto("studente")
 def salva_annuncio(id):
-    if current_user.ruolo != "studente":
-        flash("Solo gli studenti possono salvare gli annunci.", "danger")
-        return redirect(request.referrer or url_for("gestione_annunci.index"))
     
     try:
         current_app.gestore_annunci.salvaAnnuncio(studente_id=current_user.id, annuncio_id=id)
@@ -158,10 +150,8 @@ def salva_annuncio(id):
 
 @gestione_annunci_bp.route("/rimuovi_salvato/<int:id>", methods=["POST"])
 @login_required
+@ruolo_richiesto("studente")
 def rimuovi_salvato(id):
-    if current_user.ruolo != "studente":
-        return redirect(url_for("gestione_annunci.index"))
-    
     try:
         current_app.gestore_annunci.eliminaAnnuncioSalvato(studente_id=current_user.id, annuncio_id=id)
     except ValueError as e:
@@ -173,10 +163,8 @@ def rimuovi_salvato(id):
 
 @gestione_annunci_bp.route("/annunci_salvati", methods=["GET"])
 @login_required
+@ruolo_richiesto("studente")
 def annunci_salvati():
-    if current_user.ruolo != "studente":
-        flash("Questa sezione è riservata agli studenti.", "danger")
-        return redirect(url_for("gestione_annunci.index"))
     
     l_annunci_salvati = current_user.getListaAnnunciSalvati()
     

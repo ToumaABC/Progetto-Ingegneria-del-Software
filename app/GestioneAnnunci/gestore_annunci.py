@@ -3,6 +3,8 @@ from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneFoto.gestore_foto import GestoreFoto
 from sqlalchemy import select, delete
 
+from app.GestioneStanza.models import Recensione
+
 
 class GestoreAnnunci:
 
@@ -69,14 +71,10 @@ class GestoreAnnunci:
         if not titolo or not indirizzo or not descrizione:
             raise ValueError("Compila i campi che vuoi modificare con valori validi")
 
-        annuncio.titolo = titolo
-        annuncio.indirizzo = indirizzo
-        annuncio.descrizione = descrizione
-
         costo = dati.get("costo")
         if costo:
             try:
-                annuncio.costo = float(costo)
+                costo_f = float(costo)
             except (ValueError,TypeError):
                 raise ValueError("Il costo deve essere un numero con la virgola")
 
@@ -97,6 +95,13 @@ class GestoreAnnunci:
         foto_totali_dopo_modifica = len(annuncio.foto) - len(foto_da_eliminare_valide) + len(nuove_foto_valide)
         if foto_totali_dopo_modifica < 1:
             raise ValueError("L'annuncio deve avere almeno una foto.")
+
+
+        #Modifico il db
+        annuncio.titolo = titolo
+        annuncio.indirizzo = indirizzo
+        annuncio.descrizione = descrizione
+        annuncio.costo = costo_f
 
         if nuove_foto_valide:
             for file in nuove_foto_valide:
@@ -227,4 +232,5 @@ class GestoreAnnunci:
             raise ValueError("Azione non autorizzata. Non sei il proprietario di questo annuncio.")
             
         return annuncio
+
 

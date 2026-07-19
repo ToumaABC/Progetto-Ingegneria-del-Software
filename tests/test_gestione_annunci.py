@@ -2,7 +2,8 @@ import unittest
 from sqlalchemy import select,func
 from io import BytesIO
 from unittest.mock import patch
-from app import create_app, db
+from app import  db
+from app.GestioneFoto.models import FotoAnnuncio
 from app.GestioneUtente.models import Locatore
 from app.GestioneAnnunci.models import AnnuncioStanza, Servizio
 from werkzeug.security import generate_password_hash
@@ -81,6 +82,10 @@ class TestGestioneAnnunci(BaseTestCase):
             locatore_id=self.locatore.id
         )
         db.session.add(annuncio)
+        db.session.flush()  # per avere annuncio.id prima del commit
+
+        # Un annuncio reale ha  almeno una foto
+        db.session.add(FotoAnnuncio(percorso_file="uploads/annunci/vecchia.jpg", annuncio_id=annuncio.id))
         db.session.commit()
 
         data = {
@@ -99,6 +104,35 @@ class TestGestioneAnnunci(BaseTestCase):
         self.assertEqual(annuncio_modificato.indirizzo, 'Via Nuova 2')
         self.assertEqual(annuncio_modificato.descrizione, 'Descrizione aggiornata.')
         self.assertEqual(annuncio_modificato.costo, 350.0)
+
+    def test_modifica_annuncio_senza_foto_rimanenti_fallisce(self):
+        annuncio = AnnuncioStanza(
+            titolo="Da modificare", indirizzo="Via Vecchia 1",
+            descrizione="Descrizione vecchia", costo=200.0,
+            locatore_id=self.locatore.id
+        )
+        db.session.add(annuncio)
+        db.session.flush()
+        foto = FotoAnnuncio(percorso_file="uploads/annunci/unica.jpg", annuncio_id=annuncio.id)
+        db.session.add(foto)
+        db.session.commit()
+
+        data = {
+            'titolo': 'Stanza Modificata',
+            'indirizzo': 'Via Nuova 2',
+            'descrizione': 'Descrizione aggiornata.',
+            'costo': '350.0',
+            'servizi': [str(self.servizio.id)],
+            'foto_da_eliminare': [str(foto.id_foto)],  # elimino l'unica foto, senza caricarne di nuove
+        }
+        response = self.client.post(f'/modifica_annuncio/{annuncio.id}', data=data, content_type='multipart/form-data',
+                                    follow_redirects=True)
+
+        self.assertIn("almeno una foto", response.data.decode('utf-8').lower())
+
+        annuncio_invariato = db.session.get(AnnuncioStanza, annuncio.id)
+        self.assertEqual(annuncio_invariato.titolo, 'Da modificare')
+        self.assertEqual(len(annuncio_invariato.foto), 1)
 
     @patch('app.GestioneFoto.gestore_foto.GestoreFoto.elimina_file_fisico')
     def test_elimina_annuncio_valido(self, mock_elimina):
