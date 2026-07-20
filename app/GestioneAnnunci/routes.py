@@ -31,10 +31,9 @@ def aggiungi_annuncio():
 def modifica_annuncio(id,annuncio):
 
     servizi_disponibili = current_app.gestore_annunci.getListaServizi()
-
     if request.method == "POST":
 
-        # Recupera le foto che l"utente ha spuntato per l"eliminazione
+        # Recupera le foto che l"utente ha spuntato per l'eliminazione
         foto_da_eliminare = request.form.getlist("foto_da_eliminare")
         
         # Recupera le nuove foto caricate 
@@ -148,7 +147,7 @@ def salva_annuncio(id):
     return redirect(request.referrer or url_for("gestione_annunci.index"))
 
 
-@gestione_annunci_bp.route("/rimuovi_salvato/<int:id>", methods=["POST"])
+@gestione_annunci_bp.route("/rimuovi_salvato/<int:id>", methods=["POST","GET"])
 @login_required
 @ruolo_richiesto("studente")
 def rimuovi_salvato(id):

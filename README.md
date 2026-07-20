@@ -1,5 +1,3 @@
-Ecco il README riscritto secondo le tue indicazioni, rimuovendo la sezione sull'architettura ed evidenziando che si tratta di un progetto universitario.
-
 # Sistema per la Gestione e Ricerca di alloggi universitari 🏠🎓
 
 **Piattaforma software per semplificare e rendere più sicuro il mercato degli affitti accademici.**

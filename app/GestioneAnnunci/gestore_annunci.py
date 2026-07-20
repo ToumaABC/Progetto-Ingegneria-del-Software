@@ -181,7 +181,7 @@ class GestoreAnnunci:
         # Punto di estensione se ci sono filtri
         if prezzo_max or servizi_selezionati:
             annunci = self.filtraAnnunci(annunci, prezzo_max, servizi_selezionati)
-            
+
         return self.db.session.scalars(annunci).all()
 
     def filtraAnnunci(self, l_annunci, prezzo_max=None, servizi_selezionati=None):
@@ -204,8 +204,10 @@ class GestoreAnnunci:
         return l_annunci
 
     def salvaAnnuncio(self,studente_id, annuncio_id):
-        if not self.db.session.get(AnnuncioStanza,annuncio_id) :
-            raise ValueError("Annuncio non trovato.")
+        annuncio = self.db.session.get(AnnuncioStanza, annuncio_id)
+
+        if not annuncio or not annuncio.visibile:
+            raise ValueError("Annuncio non trovato o non disponibile.")
 
         salvataggio_esistente = self.db.session.scalar(select(AnnuncioSalvato).filter_by(studente_id=studente_id, annuncio_id=annuncio_id))
         if salvataggio_esistente:
@@ -215,6 +217,12 @@ class GestoreAnnunci:
         self.db.session.commit()
 
     def eliminaAnnuncioSalvato(self,studente_id, annuncio_id):
+        annuncio = self.db.session.get(AnnuncioStanza, annuncio_id)
+
+        if not annuncio or not annuncio.visibile:
+            raise ValueError("Annuncio non trovato o non disponibile.")
+
+
         salvataggio = self.db.session.scalar(select(AnnuncioSalvato).filter_by(studente_id=studente_id, annuncio_id=annuncio_id))
         if not salvataggio:
             raise ValueError("Non puoi rimuovere un annuncio non salvato ")

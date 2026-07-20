@@ -110,16 +110,12 @@ class GestoreStanza:
         return tickets
 
     def modificaTicket(self,ticket, studente_id, titolo, descrizione,foto_da_aggiungere=None,foto_da_eliminare=None):
-
-        if ticket.associazione.studente_id != studente_id:
-            raise ValueError("Non sei autorizzato a modificare questo ticket.")
     
         if ticket.stato == StatoTicket.IN_LAVORAZIONE or ticket.stato == StatoTicket.CHIUSO:
             raise ValueError("Impossibile modificare un ticket in lavorazione o chiuso")
 
         if not titolo or not descrizione:
             raise ValueError("Inserire almeno titolo e descrizione")
-
 
         GestoreFoto.valida_lista_file(foto_da_aggiungere)
 
@@ -147,7 +143,6 @@ class GestoreStanza:
 
         if ticket.stato == StatoTicket.IN_LAVORAZIONE :
             raise ValueError("Non è possibile eliminare un ticket in lavorazione.")
-
 
         for foto in ticket.foto:
             GestoreFoto.elimina_file_fisico(foto.percorso_file)
@@ -240,6 +235,7 @@ class GestoreStanza:
         recensioni = self.visualizzaRecensioni(annuncio_id)
         if not recensioni:
             return None
+        #Scorro tutte le recensioni ne prendo la valutazione e le sommo, divido per il numero totale di divisioni e arrotondo a una cifra decimale
         return round(sum(r.valutazione for r in recensioni) / len(recensioni), 1)
 
 

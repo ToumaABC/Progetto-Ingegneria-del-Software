@@ -28,8 +28,7 @@ class GestoreFoto:
         os.makedirs(upload_folder, exist_ok=True)
 
         estensione = file.filename.rsplit('.', 1)[1].lower()
-        counter = 1
-        
+
         # Genera il nome formattato
         filename = f"{prefisso_nome}_{id_entita}_{uuid.uuid4().hex}.{estensione}"
         filepath = os.path.join(upload_folder, filename)

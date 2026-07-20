@@ -7,7 +7,6 @@ from flask_login import LoginManager
 from flask_mail import Mail
 
 
-
 load_dotenv()
 
 db = SQLAlchemy()

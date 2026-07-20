@@ -83,8 +83,7 @@ def elimina_ticket(ticket_id,ticket):
     except ValueError as e:
         flash(str(e), "danger")
 
-    return redirect(url_for("gestione_stanza.visualizza_ticket"
-                            ))
+    return redirect(url_for("gestione_stanza.visualizza_ticket"))
 
 
 @gestione_stanza_bp.route('/ticket/<int:ticket_id>/avanza', methods=["POST"])
@@ -117,8 +116,7 @@ def visualizza_ticket():
         tickets_per_annuncio = {
             a: current_app.gestore_stanza.visualizzaTicketLocatore(a.id) for a in annunci
         }
-        return render_template('gestione_stanza/ticket_locatore.html',
-                               tickets_per_annuncio=tickets_per_annuncio)
+        return render_template('gestione_stanza/ticket_locatore.html', tickets_per_annuncio=tickets_per_annuncio)
     
 
 @gestione_stanza_bp.route('/annuncio/<int:annuncio_id>/recensione/nuova', methods=['GET', 'POST'])

@@ -11,8 +11,7 @@
     </div>
     <div class="mb-3">
       <label for="descrizione" class="form-label">Descrizione</label>
-      <textarea class="form-control" id="descrizione" name="descrizione"
-                rows="4" required>{{ ticket.descrizione }}</textarea>
+      <textarea class="form-control" id="descrizione" name="descrizione" rows="4" required>{{ ticket.descrizione }}</textarea>
     </div>
 
     
@@ -31,9 +30,8 @@
               {% endfor %}
           </div>
       {% else %}
-          <div class="alert alert-secondary text-center py-2">Nessuna foto associata a questo annuncio.</div>
+          <div class="alert alert-secondary text-center py-2">Nessuna foto associata a questo ticket.</div>
       {% endif %}
-  </div>
 
     <div class="mb-3">
       <label for="foto" class="form-label">Aggiungi nuove foto</label>
